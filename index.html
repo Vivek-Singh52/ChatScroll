@@ -1402,10 +1402,11 @@ async function downloadPDF() {
     wrapper.appendChild(titleBar);
     wrapper.appendChild(clone);
 
-    // Temporarily add to DOM (hidden)
-    wrapper.style.position = 'fixed';
-    wrapper.style.left     = '-9999px';
+    // Temporarily add to DOM (hidden behind everything)
+    wrapper.style.position = 'absolute';
+    wrapper.style.left     = '0';
     wrapper.style.top      = '0';
+    wrapper.style.zIndex   = '-9999';
     document.body.appendChild(wrapper);
 
     const opt = {
