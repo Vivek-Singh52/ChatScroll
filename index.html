@@ -1627,6 +1627,7 @@ async function downloadPDF() {
   overlay.style.background = 'var(--bg-base)';
   await new Promise(r => setTimeout(r, 120));
 
+  let wrapper = null;
   try {
     const frame = document.getElementById('wa-frame');
     const clone = frame.cloneNode(true);
@@ -1640,7 +1641,7 @@ async function downloadPDF() {
     }
 
     // Wrapper
-    const wrapper = document.createElement('div');
+    wrapper = document.createElement('div');
     wrapper.className = 'pdf-wrapper';
     if (document.documentElement.getAttribute('data-theme') === 'light') {
       wrapper.setAttribute('data-theme', 'light');
@@ -1706,17 +1707,17 @@ async function downloadPDF() {
 
     await html2pdf().set(opt).from(wrapper).save();
     
-    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+    if (wrapper && document.body.contains(wrapper)) document.body.removeChild(wrapper);
     overlay.style.background = oldBg;
     overlay.classList.remove('visible');
     showToast('PDF downloaded successfully! 🎉', 'success');
 
   } catch(err) {
     console.error('PDF error:', err);
-    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+    if (wrapper && document.body.contains(wrapper)) document.body.removeChild(wrapper);
     overlay.style.background = oldBg;
     overlay.classList.remove('visible');
-    showToast('PDF generation failed. Please try again.', 'error');
+    showToast('PDF failed: ' + (err.message || 'Unknown error'), 'error');
   }
 }
 
