@@ -1644,10 +1644,7 @@ async function downloadPDF() {
     wrapper.style.cssText = `
       background: var(--bg-base);
       width: 780px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: -9999;
+      position: relative;
       pointer-events: none;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     `;
@@ -1676,8 +1673,8 @@ async function downloadPDF() {
     wrapper.appendChild(titleBar);
     wrapper.appendChild(clone);
     
-    // Mount to DOM so html2canvas can calculate dimensions and layout
-    document.body.appendChild(wrapper);
+    // Mount to DOM inside overlay so html2canvas can calculate dimensions and layout
+    document.getElementById('pdf-overlay').appendChild(wrapper);
     
     // Give browser a moment to resolve image blobs before rendering
     await new Promise(r => setTimeout(r, 200));
@@ -1702,13 +1699,13 @@ async function downloadPDF() {
 
     await html2pdf().set(opt).from(wrapper).save();
     
-    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+    if (document.getElementById('pdf-overlay').contains(wrapper)) document.getElementById('pdf-overlay').removeChild(wrapper);
     overlay.classList.remove('visible');
     showToast('PDF downloaded successfully! 🎉', 'success');
 
   } catch(err) {
     console.error('PDF error:', err);
-    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+    if (document.getElementById('pdf-overlay').contains(wrapper)) document.getElementById('pdf-overlay').removeChild(wrapper);
     overlay.classList.remove('visible');
     showToast('PDF generation failed. Please try again.', 'error');
   }
