@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatScroll – WhatsApp Chat Viewer</title>
+  <meta name="description" content="ChatScroll transforms your exported WhatsApp .txt chat files into a beautiful, WhatsApp-style visual reader. Download as high-quality PDF instantly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:        #0a0a12;
+      --bg-card:        rgba(255,255,255,0.04);
+      --bg-card-hover:  rgba(255,255,255,0.07);
+      --border:         rgba(255,255,255,0.09);
+      --border-glow:    rgba(100,220,150,0.35);
+      --accent-green:   #25d366;
+      --accent-teal:    #00bfa5;
+      --accent-purple:  #7c3aed;
+      --accent-indigo:  #4f46e5;
+      --accent-pink:    #ec4899;
+      --text-primary:   #f0f2f5;
+      --text-secondary: #9aa3ae;
+      --text-muted:     #5a6270;
+      --wa-bg:          #0b141a;
+      --wa-bubble-me:   #005c4b;
+      --wa-bubble-them: #1f2c34;
+      --wa-text:        #e9edef;
+      --wa-timestamp:   #8696a0;
+      --wa-header:      #202c33;
+      --wa-input-bar:   #202c33;
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  22px;
+      --radius-xl:  32px;
+      --shadow-card: 0 8px 32px rgba(0,0,0,0.4);
+      --shadow-glow: 0 0 40px rgba(37,211,102,0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── ANIMATED BACKGROUND ─── */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .bg-canvas::before {
+      content: '';
+      position: absolute;
+      width: 900px; height: 900px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,211,102,0.12) 0%, transparent 70%);
+      top: -200px; left: -200px;
+      animation: blobA 18s ease-in-out infinite alternate;
+    }
+    .bg-canvas::after {
+      content: '';
+      position: absolute;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+      animation: blobB 22s ease-in-out infinite alternate;
+    }
+    .bg-blob-mid {
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(79,70,229,0.10) 0%, transparent 70%);
+      top: 40%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: blobC 15s ease-in-out infinite alternate;
+    }
+    @keyframes blobA {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(80px, 60px) scale(1.15); }
+    }
+    @keyframes blobB {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(-60px, -80px) scale(1.2); }
+    }
+    @keyframes blobC {
+      from { transform: translate(-50%, -50%) scale(1); }
+      to   { transform: translate(-50%, -50%) scale(1.3); }
+    }
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ─── LAYOUT ─── */
+    .app-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      padding: 22px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(10,10,18,0.6);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .logo-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+      animation: pulse-logo 3s ease-in-out infinite;
+    }
+    @keyframes pulse-logo {
+      0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.4); }
+      50%       { box-shadow: 0 4px 30px rgba(37,211,102,0.7); }
+    }
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, var(--accent-green) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-green);
+      border: 1px solid rgba(37,211,102,0.35);
+      border-radius: 20px;
+      padding: 4px 12px;
+      background: rgba(37,211,102,0.08);
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 60px;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent-green);
+      border: 1px solid rgba(37,211,102,0.3);
+      border-radius: 30px;
+      padding: 6px 16px;
+      margin-bottom: 28px;
+      background: rgba(37,211,102,0.06);
+      animation: fadeInDown 0.6s ease;
+    }
+    .hero-tag .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+    .hero h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      animation: fadeInDown 0.7s ease 0.1s both;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-teal) 50%, var(--accent-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+      animation: fadeInDown 0.8s ease 0.2s both;
+    }
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 60px;
+      flex-wrap: wrap;
+      animation: fadeInDown 0.9s ease 0.3s both;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .stat-item .icon { font-size: 16px; }
+    .stat-item strong { color: var(--text-primary); }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── UPLOAD CARD ─── */
+    .upload-section {
+      max-width: 680px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+      animation: fadeInUp 0.8s ease 0.4s both;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .upload-card {
+      background: var(--bg-card);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-xl);
+      padding: 56px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .upload-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(37,211,102,0.04), rgba(124,58,237,0.04));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .upload-card:hover::before,
+    .upload-card.drag-over::before { opacity: 1; }
+    .upload-card:hover,
+    .upload-card.drag-over {
+      border-color: var(--accent-green);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+    .upload-card.drag-over {
+      border-style: solid;
+      background: rgba(37,211,102,0.05);
+    }
+    .upload-icon {
+      font-size: 56px;
+      margin-bottom: 20px;
+      display: block;
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+    .upload-card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .upload-card p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .upload-limit-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-teal);
+      border: 1px solid rgba(0,191,165,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      background: rgba(0,191,165,0.07);
+      margin-bottom: 28px;
+    }
+    .btn-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+      color: #0a0a12;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 14px 32px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.35);
+    }
+    .btn-upload:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 30px rgba(37,211,102,0.5);
+    }
+    .btn-upload:active { transform: scale(0.98); }
+    #file-input { display: none; }
+    .upload-hint {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── PROGRESS ─── */
+    .progress-wrap { display: none; margin-top: 24px; }
+    .progress-wrap.visible { display: block; }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-teal));
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-bar-fill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(100%); }
+    }
+
+    /* ─── CHAT SECTION ─── */
+    #chat-section {
+      display: none;
+      max-width: 900px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+      animation: fadeInUp 0.6s ease;
+    }
+    #chat-section.visible { display: block; }
+    .chat-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .chat-info { display: flex; align-items: center; gap: 12px; }
+    .chat-info h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .msg-count-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-green);
+      background: rgba(37,211,102,0.1);
+      border: 1px solid rgba(37,211,102,0.2);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    .toolbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-pdf {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+    }
+    .btn-pdf:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(124,58,237,0.5);
+    }
+    .btn-reset {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-reset:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-primary);
+    }
+
+    /* ─── WHATSAPP FRAME ─── */
+    .wa-phone-frame {
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+      background: var(--wa-bg);
+    }
+    .wa-header {
+      background: var(--wa-header);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .wa-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .wa-header-info { flex: 1; }
+    .wa-header-name { font-size: 15px; font-weight: 600; color: var(--wa-text); }
+    .wa-header-status { font-size: 12px; color: var(--wa-timestamp); }
+    .wa-header-icons { display: flex; gap: 16px; color: var(--wa-timestamp); font-size: 18px; }
+    .wa-messages-area {
+      background: var(--wa-bg);
+      min-height: 500px;
+      max-height: 680px;
+      overflow-y: auto;
+      padding: 12px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      scroll-behavior: smooth;
+      background-image: radial-gradient(ellipse at 20% 30%, rgba(37,211,102,0.03) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(124,58,237,0.03) 0%, transparent 50%);
+    }
+    .wa-messages-area::-webkit-scrollbar { width: 6px; }
+    .wa-messages-area::-webkit-scrollbar-track { background: transparent; }
+    .wa-messages-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .date-divider { text-align: center; margin: 12px 0 8px; }
+    .date-divider span {
+      display: inline-block;
+      background: rgba(17,27,33,0.85);
+      color: var(--wa-timestamp);
+      font-size: 11.5px;
+      padding: 4px 12px;
+      border-radius: 7px;
+    }
+    .wa-msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 72%;
+      animation: msgIn 0.25s ease;
+    }
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .wa-msg.me  { align-self: flex-end;   align-items: flex-end; }
+    .wa-msg.them { align-self: flex-start; align-items: flex-start; }
+    .wa-msg.system { align-self: center; max-width: 85%; }
+    .wa-msg + .wa-msg { margin-top: 2px; }
+    .wa-msg.me + .wa-msg.them,
+    .wa-msg.them + .wa-msg.me { margin-top: 8px; }
+    .wa-bubble {
+      padding: 7px 10px 6px;
+      border-radius: 8px;
+      font-size: 14.2px;
+      line-height: 1.5;
+      color: var(--wa-text);
+      word-break: break-word;
+    }
+    .wa-msg.me   .wa-bubble { background: var(--wa-bubble-me);   border-bottom-right-radius: 3px; }
+    .wa-msg.them .wa-bubble { background: var(--wa-bubble-them); border-bottom-left-radius: 3px; }
+    .wa-msg.system .wa-bubble {
+      background: rgba(17,27,33,0.85);
+      color: var(--wa-timestamp);
+      font-size: 12px;
+      text-align: center;
+      border-radius: 7px;
+    }
+    .wa-sender { font-size: 12px; font-weight: 600; margin-bottom: 2px; padding-left: 2px; }
+    .wa-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .wa-time { font-size: 11px; color: rgba(134,150,160,0.85); white-space: nowrap; }
+    .wa-ticks { font-size: 12px; color: #53bdeb; }
+    .media-placeholder {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--wa-timestamp);
+      font-style: italic;
+      font-size: 13px;
+    }
+    .wa-input-bar {
+      background: var(--wa-input-bar);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .wa-input-field {
+      flex: 1;
+      background: #2a3942;
+      border: none;
+      border-radius: 22px;
+      padding: 9px 16px;
+      color: var(--wa-text);
+      font-size: 14px;
+      outline: none;
+      cursor: default;
+    }
+    .wa-input-icon { color: var(--wa-timestamp); font-size: 20px; cursor: default; }
+    .wa-mic-btn {
+      background: var(--accent-green);
+      border-radius: 50%;
+      width: 40px; height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ─── FEATURES ─── */
+    .features {
+      max-width: 1000px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+    }
+    .section-title {
+      text-align: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 800;
+      margin-bottom: 48px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      transition: all 0.3s ease;
+    }
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(37,211,102,0.25);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card);
+    }
+    .feature-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+    .feature-card h3 { font-weight: 700; margin-bottom: 8px; font-size: 16px; }
+    .feature-card p  { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ─── HOW TO ─── */
+    .how-to { max-width: 800px; margin: 0 auto 80px; padding: 0 20px; }
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+    .step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      transition: all 0.3s ease;
+    }
+    .step:hover { border-color: rgba(37,211,102,0.2); transform: translateX(4px); }
+    .step-num {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px; color: #0a0a12; flex-shrink: 0;
+    }
+    .step-content h4 { font-weight: 700; margin-bottom: 4px; }
+    .step-content p  { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a { color: var(--accent-green); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ─── PDF OVERLAY ─── */
+    .pdf-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .pdf-overlay.visible { display: flex; }
+    .pdf-spinner {
+      width: 56px; height: 56px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: var(--accent-green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pdf-overlay p  { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    .pdf-overlay small { color: var(--text-secondary); font-size: 13px; }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 30px; right: 30px;
+      background: rgba(20,30,38,0.95);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      display: flex; align-items: center; gap: 10px;
+      max-width: 360px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(37,211,102,0.4); }
+    .toast.error   { border-color: rgba(239,68,68,0.4); }
+    .toast.info    { border-color: rgba(79,70,229,0.4); }
+
+    /* ─── SENDER COLORS ─── */
+    .color-0 { color: #e06c75; }
+    .color-1 { color: #61afef; }
+    .color-2 { color: #98c379; }
+    .color-3 { color: #e5c07b; }
+    .color-4 { color: #c678dd; }
+    .color-5 { color: #56b6c2; }
+    .color-6 { color: #d19a66; }
+    .color-7 { color: #be5046; }
+
+    /* ─── SCROLL TOP ─── */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 30px; left: 30px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+      color: #0a0a12;
+      font-size: 18px;
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      z-index: 500;
+      box-shadow: 0 4px 16px rgba(37,211,102,0.4);
+    }
+    .scroll-top-btn.visible { opacity: 1; transform: translateY(0); }
+    .scroll-top-btn:hover { transform: translateY(-3px) scale(1.05); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      header { padding: 16px 20px; }
+      .hero  { padding: 50px 16px 40px; }
+      .upload-card { padding: 36px 24px; }
+      .wa-msg { max-width: 88%; }
+      .chat-toolbar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+  <div class="bg-blob-mid"></div>
+</div>
+
+<div class="app-wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo" onclick="resetApp()">
+      <div class="logo-icon">💬</div>
+      <span class="logo-text">ChatScroll</span>
+    </div>
+    <span class="header-badge">✦ Free &amp; Private</span>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">
+      <span class="dot"></span>
+      WhatsApp Chat Visualizer
+    </div>
+    <h1>Your Chats,<br /><span>Beautifully Reimagined</span></h1>
+    <p>
+      Upload your exported WhatsApp <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:5px;font-size:14px;">.txt</code> file and instantly see your conversations in a stunning visual interface — then download as a high-quality PDF.
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item"><span class="icon">🔒</span><span>100% <strong>Private</strong> — runs entirely in your browser</span></div>
+      <div class="stat-item"><span class="icon">⚡</span><span><strong>Instant</strong> conversion</span></div>
+      <div class="stat-item"><span class="icon">📄</span><span><strong>PDF</strong> download</span></div>
+    </div>
+  </section>
+
+  <!-- UPLOAD -->
+  <div class="upload-section" id="upload-section">
+    <div class="upload-card" id="drop-zone">
+      <span class="upload-icon">📂</span>
+      <h2>Drop your WhatsApp chat file here</h2>
+      <p>Drag &amp; drop or click to browse your exported <code>.txt</code> file</p>
+
+      <div class="upload-limit-badge">
+        📏 Max file size: <strong>Unlimited</strong> — processed 100% locally in your browser
+      </div>
+
+      <button class="btn-upload" id="btn-choose" onclick="event.stopPropagation(); document.getElementById('file-input').click();">
+        📁 &nbsp;Choose File
+      </button>
+      <input type="file" id="file-input" accept=".txt,text/plain" />
+      <p class="upload-hint">Supports all WhatsApp export formats · Any locale · Any file size</p>
+
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-label">
+          <span id="progress-filename">Loading…</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT VIEWER -->
+  <section id="chat-section">
+    <div class="chat-toolbar">
+      <div class="chat-info">
+        <h3 id="chat-title">WhatsApp Chat</h3>
+        <span class="msg-count-badge" id="msg-count">0 messages</span>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn-action btn-reset" onclick="resetApp()">↩ &nbsp;Load New File</button>
+        <button class="btn-action btn-pdf" onclick="downloadPDF()">⬇ &nbsp;Download PDF</button>
+      </div>
+    </div>
+
+    <div class="wa-phone-frame" id="wa-frame">
+      <div class="wa-header">
+        <div class="wa-avatar" id="wa-avatar">💬</div>
+        <div class="wa-header-info">
+          <div class="wa-header-name" id="wa-chat-name">WhatsApp Chat</div>
+          <div class="wa-header-status" id="wa-chat-sub">tap here for contact info</div>
+        </div>
+        <div class="wa-header-icons">
+          <span>📹</span><span>📞</span><span>⋮</span>
+        </div>
+      </div>
+
+      <div class="wa-messages-area" id="wa-messages"></div>
+
+      <div class="wa-input-bar">
+        <span class="wa-input-icon">😊</span>
+        <input class="wa-input-field" placeholder="Message" readonly />
+        <span class="wa-input-icon">📎</span>
+        <div class="wa-mic-btn">🎤</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <h2 class="section-title">Why ChatScroll?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3>100% Private</h3>
+        <p>Everything runs in your browser. Your chat data is never sent to any server — ever.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎨</span>
+        <h3>True WhatsApp UI</h3>
+        <p>Pixel-accurate recreation of WhatsApp's interface with correct bubble colors, timestamps, and sender names.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📄</span>
+        <h3>High-Quality PDF</h3>
+        <p>Export your full conversation as a crisp, sharp PDF — perfect for records, sharing, or archiving.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌐</span>
+        <h3>All Locales Supported</h3>
+        <p>Handles exports from any country — DD/MM/YYYY, MM/DD/YYYY, ISO formats and 12h/24h times.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📦</span>
+        <h3>Any File Size</h3>
+        <p>Process massive group chats with tens of thousands of messages — no size limits whatsoever.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3>Blazing Fast</h3>
+        <p>Optimized batch renderer streams your chat in real time — even huge files feel snappy.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW TO EXPORT -->
+  <section class="how-to">
+    <h2 class="section-title">How to Export Your WhatsApp Chat</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Open the chat in WhatsApp</h4>
+          <p>Go to the individual or group chat you want to export on your phone.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Tap the menu → More → Export Chat</h4>
+          <p>On Android: tap ⋮ → More → Export Chat. On iPhone: tap the contact name → Export Chat.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Choose "Without Media"</h4>
+          <p>Select "Without Media" for a clean <code style="background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:4px;">.txt</code> file. Both options work with ChatScroll.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Transfer the .txt file to your computer</h4>
+          <p>Send it via email, cloud storage, or USB — then drop it above to visualize instantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>
+      Made with 💚 by <strong>ChatScroll</strong> &nbsp;·&nbsp;
+      <a href="#" onclick="resetApp(); return false;">Upload another file</a>
+      &nbsp;·&nbsp; Your data never leaves your browser
+    </p>
+  </footer>
+
+</div>
+
+<!-- PDF OVERLAY -->
+<div class="pdf-overlay" id="pdf-overlay">
+  <div class="pdf-spinner"></div>
+  <p>Generating your PDF…</p>
+  <small>This may take a moment for large chats.</small>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toast-icon">ℹ️</span>
+  <span id="toast-msg">Hello!</span>
+</div>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Scroll to top">↑</button>
+
+<script>
+/* ═══════════════════════════ STATE ══════════════════════════════════ */
+let parsedMessages = [];
+let chatName       = 'WhatsApp Chat';
+let myName         = null;
+const senderColors = {};
+const colorPalette = [0,1,2,3,4,5,6,7];
+let colorIdx       = 0;
+
+/* ═══════════════════════════ UTILITIES ═══════════════════════════════ */
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+  document.getElementById('toast-icon').textContent = icons[type] || 'ℹ️';
+  document.getElementById('toast-msg').textContent  = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function updateProgress(pct) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent  = pct + '%';
+}
+
+window.addEventListener('scroll', () => {
+  document.getElementById('scroll-top-btn').classList.toggle('visible', window.scrollY > 400);
+});
+
+/* ═══════════════════════════ DRAG & DROP ═════════════════════════════ */
+const dropZone = document.getElementById('drop-zone');
+
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+});
+
+dropZone.addEventListener('click', e => {
+  // Don't double-trigger when the button inside is clicked
+  if (e.target.closest('#btn-choose')) return;
+  document.getElementById('file-input').click();
+});
+
+document.getElementById('file-input').addEventListener('change', e => {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+/* ═══════════════════════════ FILE PROCESSING ═════════════════════════ */
+function processFile(file) {
+  if (!file.name.toLowerCase().endsWith('.txt') && file.type && !file.type.startsWith('text')) {
+    showToast('Please upload a .txt file (WhatsApp export).', 'error');
+    return;
+  }
+
+  const sizeMB = (file.size / 1048576).toFixed(2);
+  document.getElementById('progress-filename').textContent = `${file.name} (${sizeMB} MB)`;
+  document.getElementById('progress-wrap').classList.add('visible');
+  updateProgress(5);
+
+  // Reset state
+  parsedMessages = [];
+  Object.keys(senderColors).forEach(k => delete senderColors[k]);
+  colorIdx = 0;
+
+  const reader = new FileReader();
+  reader.onprogress = e => {
+    if (e.lengthComputable) {
+      updateProgress(Math.round((e.loaded / e.total) * 80) + 10);
+    }
+  };
+  reader.onload = e => {
+    updateProgress(92);
+    try {
+      parsedMessages = parseWhatsAppChat(e.target.result);
+      if (parsedMessages.length === 0) {
+        throw new Error('No messages found');
+      }
+      // Infer "me" = last distinct sender (most recent person who sent something)
+      const senders = [...new Set(parsedMessages.filter(m => m.sender).map(m => m.sender))];
+      myName   = senders[senders.length - 1] || null;
+      chatName = file.name.replace(/_chat\.txt$/i,'').replace(/\.txt$/i,'') || 'WhatsApp Chat';
+      updateProgress(100);
+      setTimeout(() => renderChat(), 300);
+    } catch(err) {
+      console.error(err);
+      updateProgress(0);
+      document.getElementById('progress-wrap').classList.remove('visible');
+      showToast('Could not parse this file. Make sure it\'s a valid WhatsApp .txt export.', 'error');
+    }
+  };
+  reader.onerror = () => {
+    showToast('File read error. Please try again.', 'error');
+    updateProgress(0);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+/* ═══════════════════════════ PARSER ══════════════════════════════════ */
+function parseWhatsAppChat(text) {
+  const messages = [];
+  // Normalize CRLF
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+
+  // Matches both bracketed and non-bracketed WhatsApp export formats:
+  // [DD/MM/YYYY, HH:MM:SS] Sender: msg
+  // DD/MM/YYYY, HH:MM - Sender: msg
+  // Also handles unicode LTR/RTL marks
+  const MSG_RE = /^[\u200e\u200f\u202a-\u202e]*[\[‎]?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})[,،]\s*(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[aApP][mM])?)[\]،]?\s*[-–]\s*(.+?):\s([\s\S]*)$/;
+  const SYS_RE = /^[\u200e\u200f\u202a-\u202e]*[\[‎]?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})[,،]\s*(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[aApP][mM])?)[\]،]?\s*[-–]\s*([\s\S]+)$/;
+  const BRACKET_MSG_RE = /^[\u200e\u200f]*\[(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}),\s*(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[aApP][mM])?)\]\s*(.+?):\s([\s\S]*)$/;
+  const BRACKET_SYS_RE = /^[\u200e\u200f]*\[(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}),\s*(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[aApP][mM])?)\]\s*([\s\S]+)$/;
+
+  let current = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw  = lines[i];
+    const line = raw.replace(/[\u200e\u200f\u202a-\u202e]/g, '').trim();
+    if (!line) continue;
+
+    let m = MSG_RE.exec(raw) || BRACKET_MSG_RE.exec(raw);
+    if (m) {
+      if (current) messages.push(current);
+      current = { date: m[1].trim(), time: m[2].trim(), sender: m[3].trim(), text: m[4].trim(), isSystem: false };
+      continue;
+    }
+
+    let s = SYS_RE.exec(raw) || BRACKET_SYS_RE.exec(raw);
+    if (s && !s[3].includes(':')) {
+      if (current) messages.push(current);
+      current = { date: s[1].trim(), time: s[2].trim(), sender: null, text: s[3].trim(), isSystem: true };
+      continue;
+    }
+
+    // Continuation of previous message
+    if (current) {
+      current.text += '\n' + line;
+    }
+  }
+
+  if (current) messages.push(current);
+  return messages;
+}
+
+/* ═══════════════════════════ RENDERER ════════════════════════════════ */
+function getSenderColor(sender) {
+  if (senderColors[sender] === undefined) {
+    senderColors[sender] = colorPalette[colorIdx % colorPalette.length];
+    colorIdx++;
+  }
+  return senderColors[sender];
+}
+
+function formatDateLabel(dateStr) {
+  try {
+    const parts = dateStr.split(/[\/\-\.]/);
+    let d, m, y;
+    if (parts[0].length === 4) {
+      [y, m, d] = parts;
+    } else {
+      [d, m, y] = parts;
+      if (parseInt(d) > 12 && parseInt(m) <= 12) { /* DD/MM confirmed */ }
+      else { /* ambiguous — keep as-is */ }
+    }
+    if (String(y).length === 2) y = '20' + y;
+    const date  = new Date(y, m - 1, d);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diff  = Math.round((today - date) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    return date.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  } catch { return dateStr; }
+}
+
+function formatText(text) {
+  // Escape HTML first
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Bold *text*
+  text = text.replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>');
+  // Italic _text_
+  text = text.replace(/_([^_\n]+)_/g, '<em>$1</em>');
+  // Strikethrough ~text~
+  text = text.replace(/~([^~\n]+)~/g, '<s>$1</s>');
+  // Code `text`
+  text = text.replace(/`([^`\n]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;font-size:13px;">$1</code>');
+  // Line breaks
+  text = text.replace(/\n/g, '<br>');
+  // Media omitted
+  text = text.replace(/&lt;Media omitted&gt;/gi, '<span class="media-placeholder">🖼&nbsp;<em>Media omitted</em></span>');
+  text = text.replace(/\(file attached\)/gi, '<span class="media-placeholder">📎&nbsp;<em>File attached</em></span>');
+  text = text.replace(/&lt;attached: .+?&gt;/gi, '<span class="media-placeholder">📎&nbsp;<em>File attached</em></span>');
+  return text;
+}
+
+function renderChat() {
+  const container = document.getElementById('wa-messages');
+  container.innerHTML = '';
+
+  const realMsgs   = parsedMessages.filter(m => !m.isSystem);
+  const senders    = [...new Set(parsedMessages.filter(m => m.sender).map(m => m.sender))];
+  const isGroupChat = senders.length > 2;
+
+  document.getElementById('msg-count').textContent     = `${realMsgs.length} messages`;
+  document.getElementById('chat-title').textContent    = chatName;
+  document.getElementById('wa-chat-name').textContent  = chatName;
+  document.getElementById('wa-chat-sub').textContent   = isGroupChat
+    ? senders.slice(0,3).join(', ') + (senders.length > 3 ? ` +${senders.length-3} more` : '')
+    : 'tap here for contact info';
+
+  const avatarEmojis = ['💬','🌟','🎉','🔥','🌈','⚡','🌙','💫'];
+  document.getElementById('wa-avatar').textContent = avatarEmojis[chatName.charCodeAt(0) % avatarEmojis.length] || '💬';
+
+  let lastDate = null;
+  let idx      = 0;
+  const BATCH  = 150;
+
+  function renderBatch() {
+    const frag = document.createDocumentFragment();
+    const end  = Math.min(idx + BATCH, parsedMessages.length);
+
+    for (let i = idx; i < end; i++) {
+      const msg = parsedMessages[i];
+
+      // Date divider
+      if (msg.date !== lastDate) {
+        const div = document.createElement('div');
+        div.className = 'date-divider';
+        div.innerHTML = `<span>${formatDateLabel(msg.date)}</span>`;
+        frag.appendChild(div);
+        lastDate = msg.date;
+      }
+
+      const isMe     = !!msg.sender && msg.sender === myName;
+      const isSystem = msg.isSystem || !msg.sender;
+      const wrap     = document.createElement('div');
+      wrap.className = `wa-msg ${isSystem ? 'system' : isMe ? 'me' : 'them'}`;
+
+      // Sender label in group chats
+      if (!isMe && !isSystem && isGroupChat) {
+        const sl = document.createElement('div');
+        sl.className = `wa-sender color-${getSenderColor(msg.sender)}`;
+        sl.textContent = msg.sender;
+        wrap.appendChild(sl);
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = 'wa-bubble';
+      bubble.innerHTML = formatText(msg.text);
+
+      if (!isSystem) {
+        const meta = document.createElement('div');
+        meta.className = 'wa-meta';
+        meta.innerHTML = `<span class="wa-time">${msg.time}</span>${isMe ? '<span class="wa-ticks">✓✓</span>' : ''}`;
+        bubble.appendChild(meta);
+      }
+
+      wrap.appendChild(bubble);
+      frag.appendChild(wrap);
+    }
+
+    container.appendChild(frag);
+    idx = end;
+
+    if (idx < parsedMessages.length) {
+      requestAnimationFrame(renderBatch);
+    } else {
+      // Done
+      container.scrollTop = container.scrollHeight;
+      document.getElementById('upload-section').style.display = 'none';
+      document.getElementById('chat-section').classList.add('visible');
+      document.getElementById('progress-wrap').classList.remove('visible');
+      showToast(`Loaded ${realMsgs.length} messages!`, 'success');
+    }
+  }
+
+  renderBatch();
+}
+
+/* ═══════════════════════════ PDF EXPORT ═════════════════════════════ */
+async function downloadPDF() {
+  const overlay = document.getElementById('pdf-overlay');
+  overlay.classList.add('visible');
+  await new Promise(r => setTimeout(r, 120));
+
+  try {
+    const frame = document.getElementById('wa-frame');
+    const clone = frame.cloneNode(true);
+
+    // Make messages area full height
+    const msgsClone = clone.querySelector('.wa-messages-area');
+    if (msgsClone) {
+      msgsClone.style.maxHeight  = 'none';
+      msgsClone.style.height     = 'auto';
+      msgsClone.style.overflow   = 'visible';
+    }
+
+    // Wrapper
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+      background: #0b141a;
+      width: 780px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    `;
+
+    // Title bar
+    const titleBar = document.createElement('div');
+    titleBar.style.cssText = `
+      background: linear-gradient(135deg, #005c4b 0%, #007a61 100%);
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    `;
+    const realMsgs = parsedMessages.filter(m => !m.isSystem);
+    const dateNow  = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+    titleBar.innerHTML = `
+      <div style="font-size:40px;line-height:1;">💬</div>
+      <div>
+        <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.2;">ChatScroll Export</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.72);margin-top:6px;">
+          ${chatName} &nbsp;·&nbsp; ${realMsgs.length} messages &nbsp;·&nbsp; Generated ${dateNow}
+        </div>
+      </div>
+    `;
+
+    wrapper.appendChild(titleBar);
+    wrapper.appendChild(clone);
+
+    // Temporarily add to DOM (hidden)
+    wrapper.style.position = 'fixed';
+    wrapper.style.left     = '-9999px';
+    wrapper.style.top      = '0';
+    document.body.appendChild(wrapper);
+
+    const opt = {
+      margin:      [8, 8, 8, 8],
+      filename:    `${chatName}_ChatScroll.pdf`,
+      image:       { type: 'jpeg', quality: 0.97 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0b141a', logging: false, allowTaint: true },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+
+    await html2pdf().set(opt).from(wrapper).save();
+    document.body.removeChild(wrapper);
+    overlay.classList.remove('visible');
+    showToast('PDF downloaded successfully! 🎉', 'success');
+
+  } catch(err) {
+    console.error('PDF error:', err);
+    overlay.classList.remove('visible');
+    showToast('PDF generation failed. Please try again.', 'error');
+  }
+}
+
+/* ═══════════════════════════ RESET ══════════════════════════════════ */
+function resetApp() {
+  parsedMessages = [];
+  chatName       = 'WhatsApp Chat';
+  myName         = null;
+  colorIdx       = 0;
+  Object.keys(senderColors).forEach(k => delete senderColors[k]);
+
+  document.getElementById('wa-messages').innerHTML = '';
+  document.getElementById('chat-section').classList.remove('visible');
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('file-input').value = '';
+  updateProgress(0);
+  document.getElementById('progress-wrap').classList.remove('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

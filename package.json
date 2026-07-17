@@ -1,0 +1,23 @@
+{
+  "name": "chatscroll",
+  "version": "1.0.0",
+  "description": "ChatScroll – WhatsApp Chat Visualizer. Convert your exported WhatsApp .txt chat files into a stunning visual interface and download as high-quality PDF.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . --listen 3000"
+  },
+  "keywords": [
+    "whatsapp",
+    "chat",
+    "visualizer",
+    "pdf",
+    "export",
+    "chatscroll"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}
