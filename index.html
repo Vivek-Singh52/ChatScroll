@@ -567,10 +567,27 @@
       margin-top: 4px;
       cursor: pointer;
     }
+    .wa-media-video-wrap {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+      margin-top: 4px;
+      max-width: 100%;
+    }
     .wa-media-video {
       max-width: 100%;
       border-radius: 6px;
-      margin-top: 4px;
+      display: block;
+    }
+    .video-play-icon {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px; height: 44px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 18px; padding-left: 3px;
     }
     .wa-media-audio {
       width: 260px;
@@ -793,6 +810,68 @@
       .wa-msg { max-width: 88%; }
       .chat-toolbar { flex-direction: column; align-items: flex-start; }
     }
+
+    /* ─── LIGHTBOX ─── */
+    .lightbox {
+      position: fixed; inset: 0;
+      background: rgba(11,20,26,0.95);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .lightbox.visible {
+      display: flex;
+      opacity: 1;
+    }
+    .lightbox-topbar {
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+      color: #fff;
+      font-size: 15px;
+      z-index: 10;
+    }
+    .lightbox-close {
+      cursor: pointer; padding: 10px;
+      color: #fff; opacity: 0.8; transition: opacity 0.2s;
+    }
+    .lightbox-close:hover { opacity: 1; }
+    .lightbox-close svg { width: 24px; height: 24px; }
+    .lightbox-content-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+      padding: 60px 40px;
+    }
+    .lightbox-media {
+      max-width: 100%; max-height: 100%;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transform: scale(0.95);
+      transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+    .lightbox.visible .lightbox-media { transform: scale(1); }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.2); }
+    .lightbox-prev { left: 20px; }
+    .lightbox-next { right: 20px; }
+    .lightbox-nav svg { width: 24px; height: 24px; }
   </style>
 </head>
 <body>
@@ -989,6 +1068,25 @@
     </p>
   </footer>
 
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-topbar">
+    <div id="lightbox-info">Photo</div>
+    <div class="lightbox-close" onclick="closeLightbox()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </div>
+  </div>
+  <div class="lightbox-content-wrap">
+    <div class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)" id="lightbox-prev">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </div>
+    <div id="lightbox-content-container" style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;"></div>
+    <div class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)" id="lightbox-next">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </div>
+  </div>
 </div>
 
 <!-- PDF OVERLAY -->
@@ -1275,9 +1373,12 @@ function generateMediaHTML(filename, originalMatch) {
   if (url) {
     const lowerName = filename.toLowerCase();
     if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.png') || lowerName.endsWith('.webp')) {
-      return `<img src="${url}" class="wa-media-img" alt="${filename}" onclick="window.open('${url}', '_blank')" />`;
+      return `<img src="${url}" class="wa-media-img lightbox-trigger" data-type="image" data-filename="${filename}" data-src="${url}" alt="${filename}" onclick="openLightbox(this)" />`;
     } else if (lowerName.endsWith('.mp4')) {
-      return `<video src="${url}" class="wa-media-video" controls></video>`;
+      return `<div class="wa-media-video-wrap lightbox-trigger" data-type="video" data-filename="${filename}" data-src="${url}" onclick="openLightbox(this)">
+                <video src="${url}#t=0.1" class="wa-media-video"></video>
+                <div class="video-play-icon">▶</div>
+              </div>`;
     } else if (lowerName.endsWith('.opus') || lowerName.endsWith('.ogg') || lowerName.endsWith('.mp3') || lowerName.endsWith('.m4a')) {
       return `<audio src="${url}" class="wa-media-audio" controls></audio>`;
     }
@@ -1498,6 +1599,62 @@ function resetApp() {
   document.getElementById('progress-wrap').classList.remove('visible');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+/* ═══════════════════════════ LIGHTBOX ═══════════════════════════════ */
+let lightboxItems = [];
+let currentLightboxIndex = 0;
+
+function openLightbox(element) {
+  const items = Array.from(document.querySelectorAll('.lightbox-trigger'));
+  lightboxItems = items.map(el => ({
+    src: el.getAttribute('data-src'),
+    type: el.getAttribute('data-type'),
+    filename: el.getAttribute('data-filename')
+  }));
+  
+  currentLightboxIndex = items.indexOf(element);
+  if (currentLightboxIndex === -1) currentLightboxIndex = 0;
+  
+  renderLightboxContent();
+  document.getElementById('lightbox').classList.add('visible');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('visible');
+  const video = document.querySelector('#lightbox-content-container video');
+  if (video) video.pause();
+}
+
+function navigateLightbox(dir) {
+  currentLightboxIndex += dir;
+  if (currentLightboxIndex < 0) currentLightboxIndex = lightboxItems.length - 1;
+  if (currentLightboxIndex >= lightboxItems.length) currentLightboxIndex = 0;
+  renderLightboxContent();
+}
+
+function renderLightboxContent() {
+  const container = document.getElementById('lightbox-content-container');
+  const info = document.getElementById('lightbox-info');
+  const item = lightboxItems[currentLightboxIndex];
+  
+  if (!item) return;
+  
+  info.textContent = `${item.filename} (${currentLightboxIndex + 1} of ${lightboxItems.length})`;
+  
+  if (item.type === 'image') {
+    container.innerHTML = `<img src="${item.src}" class="lightbox-media" />`;
+  } else if (item.type === 'video') {
+    container.innerHTML = `<video src="${item.src}" class="lightbox-media" controls autoplay></video>`;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('visible')) {
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') navigateLightbox(1);
+    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+  }
+});
 </script>
 </body>
 </html>
