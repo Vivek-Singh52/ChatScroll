@@ -595,6 +595,41 @@
       height: 40px;
       margin-top: 4px;
     }
+    .wa-document-card {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 4px;
+      cursor: pointer;
+      gap: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: background 0.2s;
+      min-width: 200px;
+      max-width: 100%;
+    }
+    .wa-document-card:hover { background: rgba(255, 255, 255, 0.1); }
+    .wa-document-icon {
+      background: var(--accent-teal);
+      color: #fff;
+      border-radius: 4px;
+      min-width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .wa-document-info {
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .wa-document-name {
+      font-size: 14px; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: #e9edef;
+    }
+    .wa-document-type {
+      font-size: 12px; color: #8696a0; margin-top: 2px;
+    }
     .wa-input-bar {
       background: var(--wa-input-bar);
       padding: 10px 12px;
@@ -1204,7 +1239,7 @@ async function processZipFile(file) {
       } else {
         // Read media as blob
         const blob = await zipEntry.async("blob");
-        let mimeType = '';
+        let mimeType = 'application/octet-stream';
         if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) mimeType = 'image/jpeg';
         else if (lowerName.endsWith('.png')) mimeType = 'image/png';
         else if (lowerName.endsWith('.webp')) mimeType = 'image/webp';
@@ -1212,11 +1247,10 @@ async function processZipFile(file) {
         else if (lowerName.endsWith('.opus') || lowerName.endsWith('.ogg')) mimeType = 'audio/ogg';
         else if (lowerName.endsWith('.mp3')) mimeType = 'audio/mpeg';
         else if (lowerName.endsWith('.m4a')) mimeType = 'audio/mp4';
+        else if (lowerName.endsWith('.pdf')) mimeType = 'application/pdf';
         
-        if (mimeType) {
-          const typedBlob = new Blob([blob], { type: mimeType });
-          mediaUrls[filename] = URL.createObjectURL(typedBlob);
-        }
+        const typedBlob = new Blob([blob], { type: mimeType });
+        mediaUrls[filename] = URL.createObjectURL(typedBlob);
       }
     }
     
@@ -1372,6 +1406,7 @@ function generateMediaHTML(filename, originalMatch) {
   
   if (url) {
     const lowerName = filename.toLowerCase();
+    const ext = filename.includes('.') ? filename.split('.').pop().toUpperCase() : 'FILE';
     if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.png') || lowerName.endsWith('.webp')) {
       return `<img src="${url}" class="wa-media-img lightbox-trigger" data-type="image" data-filename="${filename}" data-src="${url}" alt="${filename}" onclick="openLightbox(this)" />`;
     } else if (lowerName.endsWith('.mp4')) {
@@ -1381,6 +1416,15 @@ function generateMediaHTML(filename, originalMatch) {
               </div>`;
     } else if (lowerName.endsWith('.opus') || lowerName.endsWith('.ogg') || lowerName.endsWith('.mp3') || lowerName.endsWith('.m4a')) {
       return `<audio src="${url}" class="wa-media-audio" controls></audio>`;
+    } else {
+      const type = lowerName.endsWith('.pdf') ? 'pdf' : 'document';
+      return `<div class="wa-document-card lightbox-trigger" data-type="${type}" data-filename="${filename}" data-src="${url}" onclick="openLightbox(this)">
+                <div class="wa-document-icon">📄</div>
+                <div class="wa-document-info">
+                  <div class="wa-document-name">${filename}</div>
+                  <div class="wa-document-type">${ext} Document</div>
+                </div>
+              </div>`;
     }
   }
   
@@ -1645,6 +1689,17 @@ function renderLightboxContent() {
     container.innerHTML = `<img src="${item.src}" class="lightbox-media" />`;
   } else if (item.type === 'video') {
     container.innerHTML = `<video src="${item.src}" class="lightbox-media" controls autoplay></video>`;
+  } else if (item.type === 'pdf') {
+    container.innerHTML = `<iframe src="${item.src}" class="lightbox-media" style="width: 85vw; height: 85vh; background: #fff; border: none; border-radius: 8px;"></iframe>`;
+  } else {
+    container.innerHTML = `
+      <div style="text-align:center; color:#fff;">
+        <div style="font-size: 64px; margin-bottom: 20px;">📄</div>
+        <div style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">${item.filename}</div>
+        <div style="color: #8696a0; margin-bottom: 30px;">Preview not available for this file type</div>
+        <a href="${item.src}" download="${item.filename}" style="display:inline-block; padding: 12px 24px; background: var(--accent-green); color: #000; text-decoration: none; border-radius: 24px; font-weight: 500;">Download File</a>
+      </div>
+    `;
   }
 }
 
