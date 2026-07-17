@@ -1182,7 +1182,9 @@ function parseWhatsAppChat(text) {
   }
 
   if (current) messages.push(current);
-  return messages;
+  
+  // Filter out blank messages (no text and no media)
+  return messages.filter(m => m.isSystem || m.text.trim().length > 0);
 }
 
 /* ═══════════════════════════ RENDERER ════════════════════════════════ */
@@ -1311,8 +1313,8 @@ function renderChat() {
       const wrap     = document.createElement('div');
       wrap.className = `wa-msg ${isSystem ? 'system' : isMe ? 'me' : 'them'}`;
 
-      // Sender label in group chats
-      if (!isMe && !isSystem && isGroupChat) {
+      // Sender label for incoming messages
+      if (!isMe && !isSystem) {
         const sl = document.createElement('div');
         sl.className = `wa-sender color-${getSenderColor(msg.sender)}`;
         sl.textContent = msg.sender;
