@@ -2,8 +2,7 @@
 
 > **A sleek, privacy-focused web application that instantly transforms raw WhatsApp chat exports into a beautiful, fully functional visual interface.**
 
-![ChatScroll Hero](https://via.placeholder.com/1000x500.png?text=ChatScroll+-+Your+Chats,+Beautifully+Reimagined) 
-*(Note: Add an actual screenshot of the app here)*
+![ChatScroll Hero](./screenshot.png)
 
 ChatScroll is a blazing-fast, 100% private WhatsApp chat visualizer. Upload your exported `.txt` or `.zip` chats to instantly render them in a pixel-perfect WhatsApp UI, complete with multi-language support, dark mode, and seamless PDF exporting. Because it processes everything locally in the browser, your personal chat data never touches a server.
 
