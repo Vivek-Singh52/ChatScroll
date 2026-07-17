@@ -1640,10 +1640,6 @@ async function downloadPDF() {
     wrapper.style.cssText = `
       background: #0b141a;
       width: 780px;
-      position: absolute;
-      left: 0;
-      top: 0;
-      z-index: -1000;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     `;
 
@@ -1671,9 +1667,6 @@ async function downloadPDF() {
     wrapper.appendChild(titleBar);
     wrapper.appendChild(clone);
     
-    // Mount to DOM so html2canvas can calculate Flexbox layouts perfectly
-    document.body.appendChild(wrapper);
-    
     // Give browser a moment to resolve image blobs before rendering
     await new Promise(r => setTimeout(r, 200));
 
@@ -1697,14 +1690,11 @@ async function downloadPDF() {
 
     await html2pdf().set(opt).from(wrapper).save();
     
-    // Cleanup
-    document.body.removeChild(wrapper);
     overlay.classList.remove('visible');
     showToast('PDF downloaded successfully! 🎉', 'success');
 
   } catch(err) {
     console.error('PDF error:', err);
-    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
     overlay.classList.remove('visible');
     showToast('PDF generation failed. Please try again.', 'error');
   }
