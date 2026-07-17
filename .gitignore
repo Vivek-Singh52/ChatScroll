@@ -1,8 +1,4 @@
-node_modules/
-.DS_Store
-Thumbs.db
-*.log
-.env
-.env.local
-.vercel/
-dist/
+# Ignore WhatsApp exports and zip files
+*.zip
+*.txt
+!README.md

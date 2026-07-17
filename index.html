@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChatScroll – WhatsApp Chat Viewer</title>
   <meta name="description" content="ChatScroll transforms your exported WhatsApp .txt chat files into a beautiful, WhatsApp-style visual reader. Download as high-quality PDF instantly." />
+  <link rel="icon" type="image/png" href="logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="translations.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -34,6 +36,7 @@
       --wa-timestamp:   #8696a0;
       --wa-header:      #202c33;
       --wa-input-bar:   #202c33;
+      --wa-input-bg:    #2a3942;
       --radius-sm:  8px;
       --radius-md:  14px;
       --radius-lg:  22px;
@@ -60,6 +63,7 @@
       --wa-timestamp:   #667781;
       --wa-header:      #f0f2f5;
       --wa-input-bar:   #f0f2f5;
+      --wa-input-bg:    #ffffff;
       --shadow-card: 0 8px 24px rgba(0,0,0,0.06);
       --shadow-glow: 0 0 30px rgba(37,211,102,0.25);
       --wa-system-bg:   rgba(255,255,255,0.95);
@@ -131,6 +135,47 @@
         linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
       background-size: 60px 60px;
     }
+    .bg-glow-cursor {
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,211,102,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.4s ease;
+      z-index: 1;
+      opacity: 0;
+      left: 50%;
+      top: 50%;
+    }
+    
+    /* ─── FLOWING BACKGROUND ELEMENTS ─── */
+    .flow-el {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,211,102,0.30) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: floatUp linear infinite;
+    }
+    .flow-1 { width: 300px; height: 300px; left: -50px; bottom: -300px; animation-duration: 25s; animation-delay: 0s; }
+    .flow-2 { width: 450px; height: 450px; left: 30%; bottom: -450px; animation-duration: 35s; animation-delay: 5s; }
+    .flow-3 { width: 250px; height: 250px; right: 15%; bottom: -250px; animation-duration: 20s; animation-delay: 2s; background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%); }
+    .flow-4 { width: 500px; height: 500px; right: -100px; bottom: -500px; animation-duration: 40s; animation-delay: 12s; }
+    .flow-5 { width: 350px; height: 350px; left: 55%; bottom: -350px; animation-duration: 28s; animation-delay: 8s; background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%); }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 0;
+      }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% {
+        transform: translateY(-120vh) rotate(360deg) scale(1.2);
+        opacity: 0;
+      }
+    }
 
     /* ─── LAYOUT ─── */
     .app-wrapper {
@@ -143,7 +188,7 @@
 
     /* ─── HEADER ─── */
     header {
-      padding: 22px 40px;
+      padding: 12px 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -159,6 +204,30 @@
       display: flex;
       align-items: center;
       gap: 16px;
+    }
+    #lang-select {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+    }
+    #lang-select option {
+      background: #111b21;
+      color: #fff;
+    }
+    html.light-mode #lang-select {
+      background: rgba(0,0,0,0.05);
+      color: #333;
+      border-color: rgba(0,0,0,0.1);
+    }
+    html.light-mode #lang-select option {
+      background: #fff;
+      color: #333;
     }
     .theme-toggle {
       background: rgba(255,255,255,0.06);
@@ -181,16 +250,22 @@
       text-decoration: none;
       cursor: pointer;
     }
-    .logo-icon {
-      width: 42px; height: 42px;
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
-      border-radius: 12px;
+    .logo-circle {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      overflow: hidden;
       box-shadow: 0 4px 20px rgba(37,211,102,0.4);
       animation: pulse-logo 3s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .logo-circle img {
+      width: 170%;
+      height: 170%;
+      object-fit: contain;
     }
     @keyframes pulse-logo {
       0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.4); }
@@ -198,7 +273,7 @@
     }
     .logo-text {
       font-family: 'Outfit', sans-serif;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 800;
       background: linear-gradient(135deg, #fff 30%, var(--accent-green) 100%);
       -webkit-background-clip: text;
@@ -707,7 +782,7 @@
     }
     .wa-input-field {
       width: 100%;
-      background: #2a3942;
+      background: var(--wa-input-bg);
       border: none;
       border-radius: 24px;
       padding: 10px 88px 10px 48px;
@@ -954,6 +1029,50 @@
     .lightbox-prev { left: 20px; }
     .lightbox-next { right: 20px; }
     .lightbox-nav svg { width: 24px; height: 24px; }
+
+    /* ─── PDF EXPORT ACTIVE STYLES ─── */
+    body.pdf-export-mode {
+      background: #ffffff !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    body.pdf-export-mode .app-wrapper {
+      position: static !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+    }
+    body.pdf-export-mode .app-wrapper > :not(#chat-section) {
+      display: none !important;
+    }
+    body.pdf-export-mode .bg-canvas {
+      display: none !important;
+    }
+    body.pdf-export-mode .chat-toolbar {
+      display: none !important;
+    }
+    body.pdf-export-mode #chat-section {
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: 780px !important;
+      width: 780px !important;
+      display: block !important;
+    }
+    #wa-frame.pdf-export-active {
+      position: relative !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      width: 780px !important;
+      max-width: 780px !important;
+      margin: 0 !important;
+      height: auto !important;
+      min-height: 100vh !important;
+    }
+    #wa-frame.pdf-export-active .wa-messages-area {
+      max-height: none !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
   </style>
 </head>
 <body>
@@ -961,6 +1080,12 @@
 <div class="bg-canvas">
   <div class="bg-grid"></div>
   <div class="bg-blob-mid"></div>
+  <div class="flow-el flow-1"></div>
+  <div class="flow-el flow-2"></div>
+  <div class="flow-el flow-3"></div>
+  <div class="flow-el flow-4"></div>
+  <div class="flow-el flow-5"></div>
+  <div class="bg-glow-cursor" id="bg-glow-cursor"></div>
 </div>
 
 <div class="app-wrapper">
@@ -968,11 +1093,22 @@
   <!-- HEADER -->
   <header>
     <div class="logo" onclick="resetApp()">
-      <div class="logo-icon">💬</div>
+      <div class="logo-circle">
+        <img src="logo.png" alt="ChatScroll" />
+      </div>
       <span class="logo-text">ChatScroll</span>
     </div>
     <div class="header-right">
-      <span class="header-badge">✦ Free &amp; Private</span>
+      <span class="header-badge" data-i18n="headerBadge">✦ Free &amp; Private</span>
+      <select id="lang-select" onchange="changeLanguage(this.value)">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="ar">العربية</option>
+        <option value="pt">Português</option>
+        <option value="zh">中文</option>
+      </select>
       <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
     </div>
   </header>
@@ -981,16 +1117,16 @@
   <section class="hero">
     <div class="hero-tag">
       <span class="dot"></span>
-      WhatsApp Chat Visualizer
+      <span data-i18n="heroTag">WhatsApp Chat Visualizer</span>
     </div>
-    <h1>Your Chats,<br /><span>Beautifully Reimagined</span></h1>
-    <p>
-      Upload your exported WhatsApp <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:5px;font-size:14px;">.txt</code> file and instantly see your conversations in a stunning visual interface — then download as a high-quality PDF.
+    <h1 data-i18n="heroTitle">Your Chats,<br /><span>Beautifully Reimagined</span></h1>
+    <p data-i18n="heroDesc">
+      Upload your exported WhatsApp <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:5px;font-size:14px;">.txt</code> or <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:5px;font-size:14px;">.zip</code> file and instantly see your conversations in a stunning visual interface — then download as a high-quality PDF.
     </p>
     <div class="hero-stats">
-      <div class="stat-item"><span class="icon">🔒</span><span>100% <strong>Private</strong> — runs entirely in your browser</span></div>
-      <div class="stat-item"><span class="icon">⚡</span><span><strong>Instant</strong> conversion</span></div>
-      <div class="stat-item"><span class="icon">📄</span><span><strong>PDF</strong> download</span></div>
+      <div class="stat-item"><span class="icon">🔒</span><span data-i18n="statPrivate">100% <strong>Private</strong> — runs entirely in your browser</span></div>
+      <div class="stat-item"><span class="icon">⚡</span><span data-i18n="statInstant"><strong>Instant</strong> conversion</span></div>
+      <div class="stat-item"><span class="icon">📄</span><span data-i18n="statPdf"><strong>PDF</strong> download</span></div>
     </div>
   </section>
 
@@ -998,18 +1134,18 @@
   <div class="upload-section" id="upload-section">
     <div class="upload-card" id="drop-zone">
       <span class="upload-icon">📂</span>
-      <h2>Drop your WhatsApp chat file here</h2>
-      <p>Drag &amp; drop or click to browse your exported <code>.txt</code> or <code>.zip</code> file</p>
+      <h2 data-i18n="uploadTitle">Drop your WhatsApp chat file here</h2>
+      <p data-i18n="uploadDesc">Drag &amp; drop or click to browse your exported <code>.txt</code> or <code>.zip</code> file</p>
 
-      <div class="upload-limit-badge">
+      <div class="upload-limit-badge" data-i18n="uploadLimit">
         📏 Max file size: <strong>Unlimited</strong> — processed 100% locally in your browser
       </div>
 
-      <button class="btn-upload" id="btn-choose" onclick="event.stopPropagation(); document.getElementById('file-input').click();">
+      <button class="btn-upload" id="btn-choose" onclick="event.stopPropagation(); document.getElementById('file-input').click();" data-i18n="uploadBtn">
         📁 &nbsp;Choose File
       </button>
       <input type="file" id="file-input" accept=".txt,text/plain,.zip,application/zip" />
-      <p class="upload-hint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
+      <p class="upload-hint" data-i18n="uploadHint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
 
       <div class="progress-wrap" id="progress-wrap">
         <div class="progress-label">
@@ -1031,8 +1167,8 @@
         <span class="msg-count-badge" id="msg-count">0 messages</span>
       </div>
       <div class="toolbar-actions">
-        <button class="btn-action btn-reset" onclick="resetApp()">↩ &nbsp;Load New File</button>
-        <button class="btn-action btn-pdf" onclick="downloadPDF()">⬇ &nbsp;Download PDF</button>
+        <button class="btn-action btn-reset" onclick="resetApp()" data-i18n="btnLoadNew">↩ &nbsp;Load New File</button>
+        <button class="btn-action btn-pdf" onclick="downloadPDF()" data-i18n="btnDownloadPdf">⬇ &nbsp;Download PDF</button>
       </div>
     </div>
 
@@ -1043,7 +1179,7 @@
         </div>
         <div class="wa-header-info">
           <div class="wa-header-name" id="wa-chat-name">WhatsApp Chat</div>
-          <div class="wa-header-status" id="wa-chat-sub">tap here for contact info</div>
+          <div class="wa-header-status" id="wa-chat-sub" data-i18n="chatSubInfo">tap here for contact info</div>
         </div>
         <div class="wa-header-icons">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
@@ -1059,7 +1195,7 @@
           <span class="wa-input-icon wa-input-smiley">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
           </span>
-          <input class="wa-input-field" placeholder="Message" readonly />
+          <input class="wa-input-field" placeholder="Message" readonly data-i18n="msgInputPlaceholder" />
           <div class="wa-input-actions">
             <span class="wa-input-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></span>
             <span class="wa-input-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6h-3.17L16 4H8L6.17 6H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.65 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.35-3-3-3z"/></svg></span>
@@ -1074,71 +1210,71 @@
 
   <!-- FEATURES -->
   <section class="features">
-    <h2 class="section-title">Why ChatScroll?</h2>
+    <h2 class="section-title" data-i18n="featTitle">Why ChatScroll?</h2>
     <div class="features-grid">
       <div class="feature-card">
         <span class="feature-icon">🔒</span>
-        <h3>100% Private</h3>
-        <p>Everything runs in your browser. Your chat data is never sent to any server — ever.</p>
+        <h3 data-i18n="feat1Title">100% Private</h3>
+        <p data-i18n="feat1Desc">Everything runs in your browser. Your chat data is never sent to any server — ever.</p>
       </div>
       <div class="feature-card">
         <span class="feature-icon">🎨</span>
-        <h3>True WhatsApp UI</h3>
-        <p>Pixel-accurate recreation of WhatsApp's interface with correct bubble colors, timestamps, and sender names.</p>
+        <h3 data-i18n="feat2Title">True WhatsApp UI</h3>
+        <p data-i18n="feat2Desc">Pixel-accurate recreation of WhatsApp's interface with correct bubble colors, timestamps, and sender names.</p>
       </div>
       <div class="feature-card">
         <span class="feature-icon">📄</span>
-        <h3>High-Quality PDF</h3>
-        <p>Export your full conversation as a crisp, sharp PDF — perfect for records, sharing, or archiving.</p>
+        <h3 data-i18n="feat3Title">High-Quality PDF</h3>
+        <p data-i18n="feat3Desc">Export your full conversation as a crisp, sharp PDF — perfect for records, sharing, or archiving.</p>
       </div>
       <div class="feature-card">
         <span class="feature-icon">🌐</span>
-        <h3>All Locales Supported</h3>
-        <p>Handles exports from any country — DD/MM/YYYY, MM/DD/YYYY, ISO formats and 12h/24h times.</p>
+        <h3 data-i18n="feat4Title">All Locales Supported</h3>
+        <p data-i18n="feat4Desc">Handles exports from any country — DD/MM/YYYY, MM/DD/YYYY, ISO formats and 12h/24h times.</p>
       </div>
       <div class="feature-card">
         <span class="feature-icon">📦</span>
-        <h3>Any File Size</h3>
-        <p>Process massive group chats with tens of thousands of messages — no size limits whatsoever.</p>
+        <h3 data-i18n="feat5Title">Any File Size</h3>
+        <p data-i18n="feat5Desc">Process massive group chats with tens of thousands of messages — no size limits whatsoever.</p>
       </div>
       <div class="feature-card">
         <span class="feature-icon">⚡</span>
-        <h3>Blazing Fast</h3>
-        <p>Optimized batch renderer streams your chat in real time — even huge files feel snappy.</p>
+        <h3 data-i18n="feat6Title">Blazing Fast</h3>
+        <p data-i18n="feat6Desc">Optimized batch renderer streams your chat in real time — even huge files feel snappy.</p>
       </div>
     </div>
   </section>
 
   <!-- HOW TO EXPORT -->
   <section class="how-to">
-    <h2 class="section-title">How to Export Your WhatsApp Chat</h2>
+    <h2 class="section-title" data-i18n="howTitle">How to Export Your WhatsApp Chat</h2>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-content">
-          <h4>Open the chat in WhatsApp</h4>
-          <p>Go to the individual or group chat you want to export on your phone.</p>
+          <h4 data-i18n="how1Title">Open the chat in WhatsApp</h4>
+          <p data-i18n="how1Desc">Go to the individual or group chat you want to export on your phone.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-content">
-          <h4>Tap the menu → More → Export Chat</h4>
-          <p>On Android: tap ⋮ → More → Export Chat. On iPhone: tap the contact name → Export Chat.</p>
+          <h4 data-i18n="how2Title">Tap the menu → More → Export Chat</h4>
+          <p data-i18n="how2Desc">On Android: tap ⋮ → More → Export Chat. On iPhone: tap the contact name → Export Chat.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-content">
-          <h4>Choose "Without Media"</h4>
-          <p>Select "Without Media" for a clean <code style="background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:4px;">.txt</code> file. Both options work with ChatScroll.</p>
+          <h4 data-i18n="how3Title">Choose "Attach Media" or "Without Media"</h4>
+          <p data-i18n="how3Desc">Select "Attach Media" to include photos (exports a <code style="background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:4px;">.zip</code>), or "Without Media" for just text.</p>
         </div>
       </div>
       <div class="step">
         <div class="step-num">4</div>
         <div class="step-content">
-          <h4>Transfer the .txt file to your computer</h4>
-          <p>Send it via email, cloud storage, or USB — then drop it above to visualize instantly.</p>
+          <h4 data-i18n="how4Title">Upload the exported file</h4>
+          <p data-i18n="how4Desc">Select the exported <code style="background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:4px;">.txt</code> or <code style="background:rgba(255,255,255,0.07);padding:1px 5px;border-radius:4px;">.zip</code> file above to visualize instantly.</p>
         </div>
       </div>
     </div>
@@ -1147,16 +1283,16 @@
   <!-- FOOTER -->
   <footer>
     <p>
-      Made with 💚 by <strong>ChatScroll</strong> &nbsp;·&nbsp;
-      <a href="#" onclick="resetApp(); return false;">Upload another file</a>
-      &nbsp;·&nbsp; Your data never leaves your browser
+      <span data-i18n="footerMadeWith">Made with 💚 by <strong>Vivify Labs</strong> &nbsp;·&nbsp;</span>
+      <a href="#" onclick="resetApp(); return false;" data-i18n="footerUpload">Upload another file</a>
+      <span data-i18n="footerPrivacy">&nbsp;·&nbsp; Your data never leaves your device</span>
     </p>
   </footer>
 
 </div>
 
 <!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox">
+<div class="lightbox" id="lightbox" data-html2canvas-ignore="true">
   <div class="lightbox-topbar">
     <div id="lightbox-info">Photo</div>
     <div class="lightbox-close" onclick="closeLightbox()">
@@ -1175,20 +1311,20 @@
 </div>
 
 <!-- PDF OVERLAY -->
-<div class="pdf-overlay" id="pdf-overlay">
+<div class="pdf-overlay" id="pdf-overlay" data-html2canvas-ignore="true">
   <div class="pdf-spinner"></div>
   <p>Generating your PDF…</p>
   <small>This may take a moment for large chats.</small>
 </div>
 
 <!-- TOAST -->
-<div class="toast" id="toast">
+<div class="toast" id="toast" data-html2canvas-ignore="true">
   <span id="toast-icon">ℹ️</span>
   <span id="toast-msg">Hello!</span>
 </div>
 
 <!-- SCROLL TO TOP -->
-<button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Scroll to top">↑</button>
+<button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Scroll to top" data-html2canvas-ignore="true">↑</button>
 
 <script>
 // --- THEME TOGGLE ---
@@ -1218,6 +1354,40 @@ if (savedTheme === 'light') {
 }
 // --------------------
 
+// --- i18n / MULTI-LANGUAGE ---
+let currentLang = localStorage.getItem('chatscroll-lang') || 'en';
+
+function t(key) {
+  if (typeof translations !== 'undefined' && translations[currentLang] && translations[currentLang][key]) {
+    return translations[currentLang][key];
+  }
+  return (typeof translations !== 'undefined' && translations['en'][key]) ? translations['en'][key] : key;
+}
+
+function changeLanguage(lang) {
+  if (typeof translations === 'undefined' || !translations[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('chatscroll-lang', lang);
+  
+  // Update DOM elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[lang][key]) {
+      el.innerHTML = translations[lang][key];
+    }
+  });
+
+  const sel = document.getElementById('lang-select');
+  if (sel) sel.value = lang;
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof translations !== 'undefined') {
+    changeLanguage(currentLang);
+  }
+});
+// --------------------
 /* ═══════════════════════════ STATE ══════════════════════════════════ */
 let parsedMessages = [];
 let chatName       = 'WhatsApp Chat';
@@ -1334,7 +1504,7 @@ async function processZipFile(file) {
     updateProgress(80);
     
     if (!txtFile) {
-      throw new Error('No .txt file found inside the zip.');
+      throw new Error(t('toastNoTxt'));
     }
     
     const textContent = await txtFile.async("string");
@@ -1349,7 +1519,7 @@ async function processZipFile(file) {
     console.error(err);
     updateProgress(0);
     document.getElementById('progress-wrap').classList.remove('visible');
-    showToast('Could not process the zip file. ' + err.message, 'error');
+    showToast(t('toastZipError') + ' ' + err.message, 'error');
   }
 }
 
@@ -1368,7 +1538,7 @@ function processTextFile(file) {
     finishProcessingText(e.target.result, file.name);
   };
   reader.onerror = () => {
-    showToast('File read error. Please try again.', 'error');
+    showToast(t('toastFileError'), 'error');
     updateProgress(0);
   };
   reader.readAsText(file, 'UTF-8');
@@ -1379,18 +1549,22 @@ function finishProcessingText(text, filename) {
     try {
       parsedMessages = parseWhatsAppChat(text);
       if (parsedMessages.length === 0) {
-        throw new Error('No messages found');
+        throw new Error(t('toastNoMsgs'));
       }
-      // Infer "me" = last distinct sender
+      // Infer "me"
       const senders = [...new Set(parsedMessages.filter(m => m.sender).map(m => m.sender))];
-      myName   = senders[senders.length - 1] || null;
+      if (senders.length === 2 && senders.includes(chatName)) {
+        myName = senders.find(s => s !== chatName);
+      } else {
+        myName = senders[senders.length - 1] || null;
+      }
       updateProgress(100);
       setTimeout(() => renderChat(), 300);
     } catch(err) {
       console.error(err);
       updateProgress(0);
       document.getElementById('progress-wrap').classList.remove('visible');
-      showToast('Could not parse this file. Make sure it\'s a valid WhatsApp export.', 'error');
+      showToast(t('toastParseError'), 'error');
     }
 }
 
@@ -1578,8 +1752,8 @@ function renderChat() {
       const wrap     = document.createElement('div');
       wrap.className = `wa-msg ${isSystem ? 'system' : isMe ? 'me' : 'them'}`;
 
-      // Sender label for incoming messages
-      if (!isMe && !isSystem) {
+      // Sender label for incoming messages (only in group chats)
+      if (!isMe && !isSystem && isGroupChat) {
         const sl = document.createElement('div');
         sl.className = `wa-sender color-${getSenderColor(msg.sender)}`;
         sl.textContent = msg.sender;
@@ -1623,42 +1797,45 @@ function renderChat() {
 async function downloadPDF() {
   const overlay = document.getElementById('pdf-overlay');
   overlay.classList.add('visible');
-  const oldBg = overlay.style.background;
-  overlay.style.background = 'var(--bg-base)';
-  await new Promise(r => setTimeout(r, 120));
+  await new Promise(r => setTimeout(r, 200));
 
-  let wrapper = null;
+  const frame = document.getElementById('wa-frame');
+  const messagesArea = document.getElementById('wa-messages');
+
+  // Save original state
+  const originalBodyOverflow = document.body.style.overflow;
+  const originalHtmlOverflow = document.documentElement.style.overflow;
+  const originalBodyHeight = document.body.style.height;
+  const originalFrameCssText = frame.style.cssText;
+  const originalMessagesCssText = messagesArea.style.cssText;
+  const originalScrollY = window.scrollY;
+  
   try {
-    const frame = document.getElementById('wa-frame');
-    const clone = frame.cloneNode(true);
+    // 1. Expand the LIVE DOM to its full height
+    document.body.style.overflow = 'visible';
+    document.documentElement.style.overflow = 'visible';
+    document.body.style.height = 'auto';
 
-    // Make messages area full height
-    const msgsClone = clone.querySelector('.wa-messages-area');
-    if (msgsClone) {
-      msgsClone.style.maxHeight  = 'none';
-      msgsClone.style.height     = 'auto';
-      msgsClone.style.overflow   = 'visible';
-    }
-
-    // Wrapper
-    wrapper = document.createElement('div');
-    wrapper.className = 'pdf-wrapper';
-    if (document.documentElement.getAttribute('data-theme') === 'light') {
-      wrapper.setAttribute('data-theme', 'light');
-    }
-    wrapper.style.cssText = `
-      background: var(--bg-base);
-      width: 780px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 900;
-      pointer-events: none;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    frame.style.cssText += `
+      max-height: none !important;
+      height: auto !important;
+      overflow: visible !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      width: 720px !important;
+      max-width: 720px !important;
+      margin: 0 auto !important;
+    `;
+    
+    messagesArea.style.cssText += `
+      max-height: none !important;
+      height: auto !important;
+      overflow: visible !important;
     `;
 
-    // Title bar
+    // 2. Add title bar
     const titleBar = document.createElement('div');
+    titleBar.id = 'temp-pdf-title-bar';
     titleBar.style.cssText = `
       background: linear-gradient(135deg, #005c4b 0%, #007a61 100%);
       padding: 24px 32px;
@@ -1669,55 +1846,61 @@ async function downloadPDF() {
     const realMsgs = parsedMessages.filter(m => !m.isSystem);
     const dateNow  = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
     titleBar.innerHTML = `
-      <div style="font-size:40px;line-height:1;">💬</div>
+      <div style="width:52px;height:52px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+        <img src="logo.png" style="width:170%;height:170%;object-fit:contain;" alt="Logo" />
+      </div>
       <div>
-        <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.2;">ChatScroll Export</div>
+        <div style="font-size:26px;font-weight:700;color:#fff;line-height:1.2;">ChatScroll Export</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.72);margin-top:6px;">
           ${chatName} &nbsp;·&nbsp; ${realMsgs.length} messages &nbsp;·&nbsp; Generated ${dateNow}
         </div>
       </div>
     `;
+    frame.insertBefore(titleBar, frame.firstChild);
 
-    wrapper.appendChild(titleBar);
-    wrapper.appendChild(clone);
-    
-    // Mount to DOM so html2canvas can calculate dimensions and layout
-    document.body.appendChild(wrapper);
-    
-    // Give browser a moment to resolve image blobs before rendering
-    await new Promise(r => setTimeout(r, 200));
+    // Scroll to top to prevent html2canvas culling bugs
+    window.scrollTo(0, 0);
 
+    // Wait for browser to repaint the expanded layout
+    await new Promise(r => setTimeout(r, 800));
+
+    // 3. Configure html2pdf for high quality and no margins
     const opt = {
-      margin:      [8, 8, 8, 8],
-      filename:    `${chatName}_ChatScroll.pdf`,
-      image:       { type: 'jpeg', quality: 0.97 },
+      margin:      0, 
+      filename:    `${chatName}.pdf`,
+      image:       { type: 'jpeg', quality: 1.0 }, // Maximum quality
       html2canvas: { 
-        scale: 2, 
+        scale: 3, // Higher scale for crystal clear chats
         useCORS: true, 
-        backgroundColor: null, 
+        backgroundColor: '#ffffff', 
         logging: false, 
         allowTaint: true,
-        scrollY: 0,
-        scrollX: 0,
-        windowWidth: 780
+        windowWidth: 720
       },
       jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] },
     };
 
-    await html2pdf().set(opt).from(wrapper).save();
-    
-    if (wrapper && document.body.contains(wrapper)) document.body.removeChild(wrapper);
-    overlay.style.background = oldBg;
-    overlay.classList.remove('visible');
+    // 4. Generate PDF directly from the live frame
+    await html2pdf().set(opt).from(frame).save();
     showToast('PDF downloaded successfully! 🎉', 'success');
 
   } catch(err) {
     console.error('PDF error:', err);
-    if (wrapper && document.body.contains(wrapper)) document.body.removeChild(wrapper);
-    overlay.style.background = oldBg;
-    overlay.classList.remove('visible');
     showToast('PDF failed: ' + (err.message || 'Unknown error'), 'error');
+  } finally {
+    // 5. Restore everything
+    document.body.style.overflow = originalBodyOverflow;
+    document.documentElement.style.overflow = originalHtmlOverflow;
+    document.body.style.height = originalBodyHeight;
+    frame.style.cssText = originalFrameCssText;
+    messagesArea.style.cssText = originalMessagesCssText;
+    
+    const tempTitle = document.getElementById('temp-pdf-title-bar');
+    if (tempTitle) tempTitle.remove();
+
+    window.scrollTo(0, originalScrollY);
+    overlay.classList.remove('visible');
   }
 }
 
@@ -1807,6 +1990,21 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') navigateLightbox(1);
     if (e.key === 'ArrowLeft') navigateLightbox(-1);
   }
+});
+
+// Cursor Glow Effect
+const glowCursor = document.getElementById('bg-glow-cursor');
+document.addEventListener('mousemove', (e) => {
+  if (!glowCursor) return;
+  // Use requestAnimationFrame for smooth performance
+  requestAnimationFrame(() => {
+    glowCursor.style.opacity = '1';
+    glowCursor.style.left = e.clientX + 'px';
+    glowCursor.style.top = e.clientY + 'px';
+  });
+});
+document.addEventListener('mouseleave', () => {
+  if (glowCursor) glowCursor.style.opacity = '0';
 });
 </script>
 </body>
