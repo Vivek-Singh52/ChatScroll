@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -557,6 +558,24 @@
       font-style: italic;
       font-size: 13px;
     }
+    .wa-media-img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 6px;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+    .wa-media-video {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+    .wa-media-audio {
+      width: 260px;
+      max-width: 100%;
+      height: 40px;
+      margin-top: 4px;
+    }
     .wa-input-bar {
       background: var(--wa-input-bar);
       padding: 10px 12px;
@@ -789,7 +808,7 @@
     <div class="upload-card" id="drop-zone">
       <span class="upload-icon">📂</span>
       <h2>Drop your WhatsApp chat file here</h2>
-      <p>Drag &amp; drop or click to browse your exported <code>.txt</code> file</p>
+      <p>Drag &amp; drop or click to browse your exported <code>.txt</code> or <code>.zip</code> file</p>
 
       <div class="upload-limit-badge">
         📏 Max file size: <strong>Unlimited</strong> — processed 100% locally in your browser
@@ -798,8 +817,8 @@
       <button class="btn-upload" id="btn-choose" onclick="event.stopPropagation(); document.getElementById('file-input').click();">
         📁 &nbsp;Choose File
       </button>
-      <input type="file" id="file-input" accept=".txt,text/plain" />
-      <p class="upload-hint">Supports all WhatsApp export formats · Any locale · Any file size</p>
+      <input type="file" id="file-input" accept=".txt,text/plain,.zip,application/zip" />
+      <p class="upload-hint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
 
       <div class="progress-wrap" id="progress-wrap">
         <div class="progress-label">
@@ -956,6 +975,7 @@ let myName         = null;
 const senderColors = {};
 const colorPalette = [0,1,2,3,4,5,6,7];
 let colorIdx       = 0;
+let mediaUrls      = {};
 
 /* ═══════════════════════════ UTILITIES ═══════════════════════════════ */
 function showToast(msg, type = 'info') {
@@ -1000,8 +1020,8 @@ document.getElementById('file-input').addEventListener('change', e => {
 
 /* ═══════════════════════════ FILE PROCESSING ═════════════════════════ */
 function processFile(file) {
-  if (!file.name.toLowerCase().endsWith('.txt') && file.type && !file.type.startsWith('text')) {
-    showToast('Please upload a .txt file (WhatsApp export).', 'error');
+  if (!file.name.toLowerCase().endsWith('.txt') && !file.name.toLowerCase().endsWith('.zip') && file.type && !file.type.startsWith('text') && !file.type.includes('zip')) {
+    showToast('Please upload a .txt or .zip file (WhatsApp export).', 'error');
     return;
   }
 
@@ -1014,7 +1034,74 @@ function processFile(file) {
   parsedMessages = [];
   Object.keys(senderColors).forEach(k => delete senderColors[k]);
   colorIdx = 0;
+  // Cleanup old object URLs
+  Object.values(mediaUrls).forEach(url => URL.revokeObjectURL(url));
+  mediaUrls = {};
 
+  if (file.name.toLowerCase().endsWith('.zip')) {
+    processZipFile(file);
+  } else {
+    processTextFile(file);
+  }
+}
+
+async function processZipFile(file) {
+  try {
+    const zip = new JSZip();
+    const contents = await zip.loadAsync(file);
+    
+    updateProgress(40);
+    
+    let txtFile = null;
+    let txtFilename = '';
+    
+    // Find text file and media files
+    for (const [filename, zipEntry] of Object.entries(contents.files)) {
+      if (zipEntry.dir) continue;
+      
+      const lowerName = filename.toLowerCase();
+      if (lowerName.endsWith('.txt')) {
+        txtFile = zipEntry;
+        txtFilename = filename;
+      } else {
+        // Read media as blob
+        const blob = await zipEntry.async("blob");
+        let mimeType = '';
+        if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) mimeType = 'image/jpeg';
+        else if (lowerName.endsWith('.png')) mimeType = 'image/png';
+        else if (lowerName.endsWith('.webp')) mimeType = 'image/webp';
+        else if (lowerName.endsWith('.mp4')) mimeType = 'video/mp4';
+        else if (lowerName.endsWith('.opus') || lowerName.endsWith('.ogg')) mimeType = 'audio/ogg';
+        else if (lowerName.endsWith('.mp3')) mimeType = 'audio/mpeg';
+        else if (lowerName.endsWith('.m4a')) mimeType = 'audio/mp4';
+        
+        if (mimeType) {
+          const typedBlob = new Blob([blob], { type: mimeType });
+          mediaUrls[filename] = URL.createObjectURL(typedBlob);
+        }
+      }
+    }
+    
+    updateProgress(80);
+    
+    if (!txtFile) {
+      throw new Error('No .txt file found inside the zip.');
+    }
+    
+    const textContent = await txtFile.async("string");
+    chatName = file.name.replace(/\.zip$/i, '') || 'WhatsApp Chat';
+    
+    finishProcessingText(textContent, file.name);
+    
+  } catch (err) {
+    console.error(err);
+    updateProgress(0);
+    document.getElementById('progress-wrap').classList.remove('visible');
+    showToast('Could not process the zip file. ' + err.message, 'error');
+  }
+}
+
+function processTextFile(file) {
   const reader = new FileReader();
   reader.onprogress = e => {
     if (e.lengthComputable) {
@@ -1022,30 +1109,34 @@ function processFile(file) {
     }
   };
   reader.onload = e => {
-    updateProgress(92);
-    try {
-      parsedMessages = parseWhatsAppChat(e.target.result);
-      if (parsedMessages.length === 0) {
-        throw new Error('No messages found');
-      }
-      // Infer "me" = last distinct sender (most recent person who sent something)
-      const senders = [...new Set(parsedMessages.filter(m => m.sender).map(m => m.sender))];
-      myName   = senders[senders.length - 1] || null;
-      chatName = file.name.replace(/_chat\.txt$/i,'').replace(/\.txt$/i,'') || 'WhatsApp Chat';
-      updateProgress(100);
-      setTimeout(() => renderChat(), 300);
-    } catch(err) {
-      console.error(err);
-      updateProgress(0);
-      document.getElementById('progress-wrap').classList.remove('visible');
-      showToast('Could not parse this file. Make sure it\'s a valid WhatsApp .txt export.', 'error');
-    }
+    chatName = file.name.replace(/_chat\.txt$/i,'').replace(/\.txt$/i,'') || 'WhatsApp Chat';
+    finishProcessingText(e.target.result, file.name);
   };
   reader.onerror = () => {
     showToast('File read error. Please try again.', 'error');
     updateProgress(0);
   };
   reader.readAsText(file, 'UTF-8');
+}
+
+function finishProcessingText(text, filename) {
+    updateProgress(92);
+    try {
+      parsedMessages = parseWhatsAppChat(text);
+      if (parsedMessages.length === 0) {
+        throw new Error('No messages found');
+      }
+      // Infer "me" = last distinct sender
+      const senders = [...new Set(parsedMessages.filter(m => m.sender).map(m => m.sender))];
+      myName   = senders[senders.length - 1] || null;
+      updateProgress(100);
+      setTimeout(() => renderChat(), 300);
+    } catch(err) {
+      console.error(err);
+      updateProgress(0);
+      document.getElementById('progress-wrap').classList.remove('visible');
+      showToast('Could not parse this file. Make sure it\'s a valid WhatsApp export.', 'error');
+    }
 }
 
 /* ═══════════════════════════ PARSER ══════════════════════════════════ */
@@ -1124,6 +1215,30 @@ function formatDateLabel(dateStr) {
   } catch { return dateStr; }
 }
 
+function generateMediaHTML(filename, originalMatch) {
+  // Try to find exact filename or one that ends with it (sometimes paths are prefixed)
+  let url = mediaUrls[filename];
+  if (!url) {
+    const keys = Object.keys(mediaUrls);
+    const foundKey = keys.find(k => k.endsWith(filename));
+    if (foundKey) url = mediaUrls[foundKey];
+  }
+  
+  if (url) {
+    const lowerName = filename.toLowerCase();
+    if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.png') || lowerName.endsWith('.webp')) {
+      return `<img src="${url}" class="wa-media-img" alt="${filename}" onclick="window.open('${url}', '_blank')" />`;
+    } else if (lowerName.endsWith('.mp4')) {
+      return `<video src="${url}" class="wa-media-video" controls></video>`;
+    } else if (lowerName.endsWith('.opus') || lowerName.endsWith('.ogg') || lowerName.endsWith('.mp3') || lowerName.endsWith('.m4a')) {
+      return `<audio src="${url}" class="wa-media-audio" controls></audio>`;
+    }
+  }
+  
+  // Placeholder if unsupported type or not found
+  return `<span class="media-placeholder">📎&nbsp;<em>${filename}</em></span>`;
+}
+
 function formatText(text) {
   // Escape HTML first
   text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1137,10 +1252,19 @@ function formatText(text) {
   text = text.replace(/`([^`\n]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;font-size:13px;">$1</code>');
   // Line breaks
   text = text.replace(/\n/g, '<br>');
+  
+  // Handle Android style attachments: filename.ext (file attached)
+  text = text.replace(/([a-zA-Z0-9_\-\.\s]+)\s*\(file attached\)/gi, (match, filename) => {
+    return generateMediaHTML(filename.trim(), match);
+  });
+  
+  // Handle iOS style attachments: <attached: filename.ext>
+  text = text.replace(/&lt;attached:\s*(.+?)&gt;/gi, (match, filename) => {
+    return generateMediaHTML(filename.trim(), match);
+  });
+  
   // Media omitted
   text = text.replace(/&lt;Media omitted&gt;/gi, '<span class="media-placeholder">🖼&nbsp;<em>Media omitted</em></span>');
-  text = text.replace(/\(file attached\)/gi, '<span class="media-placeholder">📎&nbsp;<em>File attached</em></span>');
-  text = text.replace(/&lt;attached: .+?&gt;/gi, '<span class="media-placeholder">📎&nbsp;<em>File attached</em></span>');
   return text;
 }
 
@@ -1312,6 +1436,10 @@ function resetApp() {
   myName         = null;
   colorIdx       = 0;
   Object.keys(senderColors).forEach(k => delete senderColors[k]);
+  
+  // Revoke object URLs to free memory
+  Object.values(mediaUrls).forEach(url => URL.revokeObjectURL(url));
+  mediaUrls = {};
 
   document.getElementById('wa-messages').innerHTML = '';
   document.getElementById('chat-section').classList.remove('visible');

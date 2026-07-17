@@ -10,7 +10,7 @@
 
 ## ✨ Features
 
-- 📂 **Upload any `.txt` WhatsApp export** — drag & drop or click to browse
+- 📂 **Upload any `.zip` or `.txt` WhatsApp export** — drag & drop or click to browse
 - 📱 **True WhatsApp UI** — pixel-accurate chat bubbles, timestamps, sender colors
 - 🌐 **All locales supported** — DD/MM/YYYY, MM/DD/YYYY, ISO, 12h/24h formats
 - 📄 **High-quality PDF export** — crisp, print-ready PDF of your full conversation
@@ -29,8 +29,8 @@
 ## 🛠️ How to Use
 
 1. Export your WhatsApp chat (Android: **⋮ → More → Export Chat** | iPhone: **Contact Name → Export Chat**)
-2. Choose **"Without Media"** to get a `.txt` file
-3. Transfer the `.txt` file to your computer
+2. Choose **"With Media"** (recommended for `.zip`) or **"Without Media"** (`.txt`)
+3. Transfer the `.zip` or `.txt` file to your computer
 4. Go to ChatScroll, drop your file, and instantly see your chat beautifully rendered
 5. Hit **Download PDF** to save it
 
