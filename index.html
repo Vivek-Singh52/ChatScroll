@@ -40,6 +40,30 @@
       --radius-xl:  32px;
       --shadow-card: 0 8px 32px rgba(0,0,0,0.4);
       --shadow-glow: 0 0 40px rgba(37,211,102,0.15);
+      --wa-system-bg: rgba(17,27,33,0.85);
+      --wa-scrollbar: rgba(255,255,255,0.1);
+    }
+
+    [data-theme="light"] {
+      --bg-base:        #f0f2f5;
+      --bg-card:        #ffffff;
+      --bg-card-hover:  #f9fafb;
+      --border:         #e5e7eb;
+      --border-glow:    rgba(37,211,102,0.4);
+      --text-primary:   #111827;
+      --text-secondary: #4b5563;
+      --text-muted:     #9ca3af;
+      --wa-bg:          #efeae2;
+      --wa-bubble-me:   #d9fdd3;
+      --wa-bubble-them: #ffffff;
+      --wa-text:        #111b21;
+      --wa-timestamp:   #667781;
+      --wa-header:      #f0f2f5;
+      --wa-input-bar:   #f0f2f5;
+      --shadow-card: 0 8px 24px rgba(0,0,0,0.06);
+      --shadow-glow: 0 0 30px rgba(37,211,102,0.25);
+      --wa-system-bg:   rgba(255,255,255,0.95);
+      --wa-scrollbar:   rgba(0,0,0,0.15);
     }
 
     html { scroll-behavior: smooth; }
@@ -131,6 +155,25 @@
       top: 0;
       z-index: 100;
     }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .theme-toggle {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
+    [data-theme="light"] .theme-toggle { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+    [data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.1); }
     .logo {
       display: flex;
       align-items: center;
@@ -496,13 +539,16 @@
       gap: 2px;
       scroll-behavior: smooth;
     }
+    [data-theme="light"] .wa-messages-area {
+      background: var(--wa-bg) url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.04' fill-rule='evenodd'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z'/%3E%3C/g%3E%3C/svg%3E");
+    }
     .wa-messages-area::-webkit-scrollbar { width: 6px; }
     .wa-messages-area::-webkit-scrollbar-track { background: transparent; }
-    .wa-messages-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .wa-messages-area::-webkit-scrollbar-thumb { background: var(--wa-scrollbar); border-radius: 10px; }
     .date-divider { text-align: center; margin: 12px 0 8px; }
     .date-divider span {
       display: inline-block;
-      background: rgba(17,27,33,0.85);
+      background: var(--wa-system-bg);
       color: var(--wa-timestamp);
       font-size: 11.5px;
       padding: 4px 12px;
@@ -535,7 +581,7 @@
     .wa-msg.me   .wa-bubble { background: var(--wa-bubble-me);   border-bottom-right-radius: 3px; }
     .wa-msg.them .wa-bubble { background: var(--wa-bubble-them); border-bottom-left-radius: 3px; }
     .wa-msg.system .wa-bubble {
-      background: rgba(17,27,33,0.85);
+      background: var(--wa-system-bg);
       color: var(--wa-timestamp);
       font-size: 12px;
       text-align: center;
@@ -923,7 +969,10 @@
       <div class="logo-icon">💬</div>
       <span class="logo-text">ChatScroll</span>
     </div>
-    <span class="header-badge">✦ Free &amp; Private</span>
+    <div class="header-right">
+      <span class="header-badge">✦ Free &amp; Private</span>
+      <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+    </div>
   </header>
 
   <!-- HERO -->
@@ -1140,6 +1189,33 @@
 <button class="scroll-top-btn" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Scroll to top">↑</button>
 
 <script>
+// --- THEME TOGGLE ---
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+function setTheme(isLight) {
+  if (isLight) {
+    document.documentElement.setAttribute('data-theme', 'light');
+    if (themeToggleBtn) themeToggleBtn.textContent = '☀️';
+    localStorage.setItem('chatscroll-theme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    if (themeToggleBtn) themeToggleBtn.textContent = '🌙';
+    localStorage.setItem('chatscroll-theme', 'dark');
+  }
+}
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') !== 'light';
+  setTheme(isLight);
+}
+
+// Init theme on load
+const savedTheme = localStorage.getItem('chatscroll-theme');
+if (savedTheme === 'light') {
+  setTheme(true);
+} else if (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+  setTheme(true);
+}
+// --------------------
+
 /* ═══════════════════════════ STATE ══════════════════════════════════ */
 let parsedMessages = [];
 let chatName       = 'WhatsApp Chat';
