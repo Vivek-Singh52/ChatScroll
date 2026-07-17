@@ -1408,12 +1408,23 @@ async function downloadPDF() {
     wrapper.style.top      = '0';
     wrapper.style.zIndex   = '-9999';
     document.body.appendChild(wrapper);
+    
+    // Give browser a moment to layout/paint the appended DOM node
+    await new Promise(r => setTimeout(r, 200));
 
     const opt = {
       margin:      [8, 8, 8, 8],
       filename:    `${chatName}_ChatScroll.pdf`,
       image:       { type: 'jpeg', quality: 0.97 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0b141a', logging: false, allowTaint: true },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#0b141a', 
+        logging: false, 
+        allowTaint: true,
+        scrollY: 0,
+        scrollX: 0
+      },
       jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] },
     };
