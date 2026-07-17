@@ -1647,7 +1647,9 @@ async function downloadPDF() {
       position: absolute;
       top: 0;
       left: 0;
-      z-index: -1000;
+      opacity: 0.01;
+      pointer-events: none;
+      z-index: 10000;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     `;
 
