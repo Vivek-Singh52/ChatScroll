@@ -1401,15 +1401,8 @@ async function downloadPDF() {
 
     wrapper.appendChild(titleBar);
     wrapper.appendChild(clone);
-
-    // Temporarily add to DOM (hidden behind everything)
-    wrapper.style.position = 'absolute';
-    wrapper.style.left     = '0';
-    wrapper.style.top      = '0';
-    wrapper.style.zIndex   = '-9999';
-    document.body.appendChild(wrapper);
     
-    // Give browser a moment to layout/paint the appended DOM node
+    // Give browser a moment to resolve image blobs before rendering
     await new Promise(r => setTimeout(r, 200));
 
     const opt = {
@@ -1430,7 +1423,6 @@ async function downloadPDF() {
     };
 
     await html2pdf().set(opt).from(wrapper).save();
-    document.body.removeChild(wrapper);
     overlay.classList.remove('visible');
     showToast('PDF downloaded successfully! 🎉', 'success');
 
