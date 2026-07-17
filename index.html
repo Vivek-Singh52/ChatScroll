@@ -393,7 +393,7 @@
     /* ─── CHAT SECTION ─── */
     #chat-section {
       display: none;
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto 60px;
       padding: 0 20px;
       animation: fadeInUp 0.6s ease;
@@ -472,17 +472,19 @@
     .wa-avatar {
       width: 40px; height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+      background: #dfe5e7;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
       flex-shrink: 0;
+      overflow: hidden;
     }
-    .wa-header-info { flex: 1; }
-    .wa-header-name { font-size: 15px; font-weight: 600; color: var(--wa-text); }
-    .wa-header-status { font-size: 12px; color: var(--wa-timestamp); }
-    .wa-header-icons { display: flex; gap: 16px; color: var(--wa-timestamp); font-size: 18px; }
+    .wa-avatar svg { width: 32px; height: 32px; color: #ffffff; margin-top: 6px; }
+    .wa-header-info { flex: 1; overflow: hidden; white-space: nowrap; }
+    .wa-header-name { font-size: 16px; font-weight: 500; color: var(--wa-text); text-overflow: ellipsis; overflow: hidden; }
+    .wa-header-status { font-size: 13px; color: var(--wa-timestamp); margin-top: 1px; }
+    .wa-header-icons { display: flex; gap: 20px; color: #aebac1; align-items: center; cursor: pointer; }
+    .wa-header-icons svg { width: 24px; height: 24px; }
     .wa-messages-area {
       background: var(--wa-bg);
       min-height: 500px;
@@ -847,13 +849,17 @@
 
     <div class="wa-phone-frame" id="wa-frame">
       <div class="wa-header">
-        <div class="wa-avatar" id="wa-avatar">💬</div>
+        <div class="wa-avatar" id="wa-avatar">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 20h12a1 1 0 0 0 1-1 7 7 0 0 0-14 0 1 1 0 0 0 1 1z"/></svg>
+        </div>
         <div class="wa-header-info">
           <div class="wa-header-name" id="wa-chat-name">WhatsApp Chat</div>
           <div class="wa-header-status" id="wa-chat-sub">tap here for contact info</div>
         </div>
         <div class="wa-header-icons">
-          <span>📹</span><span>📞</span><span>⋮</span>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
         </div>
       </div>
 
@@ -1089,7 +1095,10 @@ async function processZipFile(file) {
     }
     
     const textContent = await txtFile.async("string");
-    chatName = file.name.replace(/\.zip$/i, '') || 'WhatsApp Chat';
+    chatName = file.name.replace(/\.zip$/i, '')
+      .replace(/^WhatsApp Chat with /i, '')
+      .replace(/^WhatsApp Chat - /i, '')
+      .trim() || 'WhatsApp Chat';
     
     finishProcessingText(textContent, file.name);
     
@@ -1109,7 +1118,10 @@ function processTextFile(file) {
     }
   };
   reader.onload = e => {
-    chatName = file.name.replace(/_chat\.txt$/i,'').replace(/\.txt$/i,'') || 'WhatsApp Chat';
+    chatName = file.name.replace(/_chat\.txt$/i,'').replace(/\.txt$/i,'')
+      .replace(/^WhatsApp Chat with /i, '')
+      .replace(/^WhatsApp Chat - /i, '')
+      .trim() || 'WhatsApp Chat';
     finishProcessingText(e.target.result, file.name);
   };
   reader.onerror = () => {
@@ -1284,9 +1296,6 @@ function renderChat() {
   document.getElementById('wa-chat-sub').textContent   = isGroupChat
     ? senders.slice(0,3).join(', ') + (senders.length > 3 ? ` +${senders.length-3} more` : '')
     : 'tap here for contact info';
-
-  const avatarEmojis = ['💬','🌟','🎉','🔥','🌈','⚡','🌙','💫'];
-  document.getElementById('wa-avatar').textContent = avatarEmojis[chatName.charCodeAt(0) % avatarEmojis.length] || '💬';
 
   let lastDate = null;
   let idx      = 0;
