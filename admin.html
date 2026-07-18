@@ -860,7 +860,7 @@
               <textarea class="reply-textarea" id="reply-text" rows="4" placeholder="Write your reply here…"></textarea>
               <div class="reply-actions">
                 <button class="btn-danger-outline" onclick="deleteTicket()" style="margin-right: auto;">🗑 Delete Message</button>
-                <button class="btn-resolve" onclick="markTicketStatus('resolved')">✓ Mark Resolved</button>
+                <button class="btn-resolve" id="btn-resolve-ticket" onclick="markTicketStatus('resolved')">✓ Mark Resolved</button>
                 <button class="btn-reply-send" onclick="sendReplyEmail()">✉ Send Reply</button>
               </div>
             </div>
@@ -1436,6 +1436,19 @@
   }
 
   // 4. Feedback Inbox System
+  function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, 
+      tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[tag] || tag)
+    );
+  }
+
   function loadFeedbacks() {
     if (DbTracker.isConfigured() && DbTracker.db) {
       DbTracker.db.collection('feedbacks').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
@@ -1444,6 +1457,19 @@
           feedbacksList.push({ id: doc.id, ...doc.data() });
         });
         renderInbox();
+        
+        // Refresh details panel if selected ticket is updated
+        if (selectedTicketId) {
+          const updatedTicket = feedbacksList.find(f => f.id === selectedTicketId);
+          if (updatedTicket) {
+            updateDetailPanel(updatedTicket);
+          } else {
+            // Selected ticket was deleted by someone else
+            document.getElementById('inbox-empty-view').style.display = 'flex';
+            document.getElementById('inbox-full-view').style.display = 'none';
+            selectedTicketId = null;
+          }
+        }
       });
     } else {
       feedbacksList = JSON.parse(localStorage.getItem('chatscroll_local_feedbacks') || '[]');
@@ -1499,10 +1525,10 @@
         <div class="inbox-avatar" style="background:${colors[colorIdx]}22; border:1.5px solid ${colors[colorIdx]}55; color:${colors[colorIdx]}">${initials}</div>
         <div class="inbox-item-body">
           <div class="inbox-item-top">
-            <span class="inbox-item-name">${ticket.name}</span>
+            <span class="inbox-item-name">${escapeHTML(ticket.name)}</span>
             <span class="inbox-item-time">${timeStr}</span>
           </div>
-          <div class="inbox-item-preview">${ticket.message}</div>
+          <div class="inbox-item-preview">${escapeHTML(ticket.message)}</div>
           <div style="margin-top:5px">
             <span class="badge-type ${ticket.type}">${ticket.type}</span>
             ${ticket.status === 'resolved' ? '<span class="badge-resolved">resolved</span>' : ''}
@@ -1523,6 +1549,14 @@
     document.getElementById('inbox-empty-view').style.display = 'none';
     document.getElementById('inbox-full-view').style.display = 'flex';
     
+    updateDetailPanel(ticket);
+    
+    // Prefill reply draft
+    const replyArea = document.getElementById('reply-text');
+    replyArea.value = `Hi ${ticket.name},\n\nThank you for reaching out to ChatScroll! We've received your message.\n\n[Your reply here]\n\nBest regards,\nVivek Singh\nChatScroll`;
+  }
+
+  function updateDetailPanel(ticket) {
     document.getElementById('det-name').innerText = ticket.name;
     document.getElementById('det-email').innerText = ticket.email;
     document.getElementById('det-message').innerText = ticket.message;
@@ -1560,10 +1594,22 @@
     } else {
       starsContainer.style.display = 'none';
     }
-    
-    // Prefill reply draft
-    const replyArea = document.getElementById('reply-text');
-    replyArea.value = `Hi ${ticket.name},\n\nThank you for reaching out to ChatScroll! We've received your message.\n\n[Your reply here]\n\nBest regards,\nVivek Singh\nChatScroll`;
+
+    // Update resolve button text and functionality
+    const resolveBtn = document.getElementById('btn-resolve-ticket');
+    if (resolveBtn) {
+      if (ticket.status === 'resolved') {
+        resolveBtn.innerText = '↺ Reopen Message';
+        resolveBtn.setAttribute('onclick', "markTicketStatus('pending')");
+        resolveBtn.style.color = '#ffb300';
+        resolveBtn.style.borderColor = 'rgba(255, 179, 0, 0.3)';
+        resolveBtn.style.background = 'rgba(255, 179, 0, 0.05)';
+      } else {
+        resolveBtn.innerText = '✓ Mark Resolved';
+        resolveBtn.setAttribute('onclick', "markTicketStatus('resolved')");
+        resolveBtn.style.color = '';
+        resolveBtn.style.borderColor = '';
+        resolveBtn.style.background = '';
   }
 
   async function markTicketStatus(newStatus) {
