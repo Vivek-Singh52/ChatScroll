@@ -610,11 +610,74 @@
       }
     }
     
+    .wa-select {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+      width: 100%;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b9bb4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 36px;
+      transition: all 0.2s;
+    }
+    .wa-select:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 0 2px rgba(37,211,102,0.2);
+    }
+    .wa-select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+    html.light-mode .wa-select {
+      background-color: rgba(0,0,0,0.03);
+    }
+
     .dashboard-sidebar {
       display: flex;
       flex-direction: column;
       gap: 16px;
       height: 100%;
+    }
+    @media (max-width: 900px) {
+      .dashboard-sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .dashboard-sidebar > .sidebar-block {
+        flex: 1 1 calc(50% - 6px);
+        padding: 12px;
+        margin-bottom: 0;
+      }
+      .dashboard-sidebar > .sidebar-block:first-child {
+        flex: 1 1 100%; /* VIEW AS dropdown spans full width */
+      }
+      .dashboard-sidebar .overview-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .dashboard-sidebar .overview-box {
+        padding: 8px 4px;
+      }
+      .dashboard-sidebar .overview-box strong { font-size: 14px; }
+      .dashboard-sidebar .overview-box span:last-child { font-size: 9px; }
+      .dashboard-sidebar .top-participants-panel {
+        flex: 1 1 100%;
+      }
+      .dashboard-sidebar > div:last-child {
+        flex: 1 1 100%;
+        flex-direction: row !important;
+      }
     }
     .sidebar-block {
       background: var(--bg-card);
@@ -675,7 +738,7 @@
       padding-bottom: 4px;
     }
     .overview-list-item span { color: var(--text-secondary); }
-    .overview-list-item strong { color: var(--text-primary); max-width: 130px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+    .overview-list-item strong { color: var(--text-primary); text-align: right; word-break: break-all; }
     
     .participant-row {
       display: flex;
@@ -1412,28 +1475,28 @@
   <section id="chat-section">
     <aside class="dashboard-sidebar" id="dashboard-sidebar">
       <div class="sidebar-block">
-        <label for="view-as-select" class="sidebar-label">VIEW AS</label>
+        <label for="view-as-select" class="sidebar-label" data-i18n="sbViewAs">VIEW AS</label>
         <select id="view-as-select" class="wa-select" onchange="changeViewAs(this.value)">
           <option value="system">System (Neutral)</option>
         </select>
       </div>
       
       <div class="sidebar-block chat-overview-panel">
-        <h4 class="sidebar-heading">CHAT OVERVIEW</h4>
+        <h4 class="sidebar-heading" data-i18n="sbOverview">CHAT OVERVIEW</h4>
         <div class="overview-grid">
-          <div class="overview-box"><span class="icon">💬</span><strong id="sb-msg-count">0</strong><span>Messages</span></div>
-          <div class="overview-box"><span class="icon">🖼️</span><strong id="sb-media-count">0</strong><span>Media</span></div>
-          <div class="overview-box"><span class="icon">👥</span><strong id="sb-people-count">0</strong><span>People</span></div>
-          <div class="overview-box"><span class="icon">📅</span><strong id="sb-days-count">0</strong><span>Days</span></div>
+          <div class="overview-box"><span class="icon">💬</span><strong id="sb-msg-count">0</strong><span data-i18n="sbMessages">Messages</span></div>
+          <div class="overview-box"><span class="icon">🖼️</span><strong id="sb-media-count">0</strong><span data-i18n="sbMedia">Media</span></div>
+          <div class="overview-box"><span class="icon">👥</span><strong id="sb-people-count">0</strong><span data-i18n="sbPeople">People</span></div>
+          <div class="overview-box"><span class="icon">📅</span><strong id="sb-days-count">0</strong><span data-i18n="sbDays">Days</span></div>
         </div>
         <div class="overview-list">
-          <div class="overview-list-item"><span>Date range</span><strong id="sb-date-range">-</strong></div>
-          <div class="overview-list-item"><span>Most active</span><strong id="sb-most-active">-</strong></div>
+          <div class="overview-list-item"><span data-i18n="sbDateRange">Date range</span><strong id="sb-date-range">-</strong></div>
+          <div class="overview-list-item"><span data-i18n="sbMostActive">Most active</span><strong id="sb-most-active">-</strong></div>
         </div>
       </div>
       
       <div class="sidebar-block top-participants-panel">
-        <h4 class="sidebar-heading">TOP PARTICIPANTS</h4>
+        <h4 class="sidebar-heading" data-i18n="sbTopParticipants">TOP PARTICIPANTS</h4>
         <div id="sb-top-participants"></div>
       </div>
       

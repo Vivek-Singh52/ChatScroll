@@ -55,7 +55,16 @@ const translations = {
     avgWords: "Average words per message:",
     mostEmojis: "Most used emojis:",
     wordsUnit: "words",
-    msgsUnit: "msgs"
+    msgsUnit: "msgs",
+    sbViewAs: "VIEW AS",
+    sbOverview: "CHAT OVERVIEW",
+    sbMessages: "Messages",
+    sbMedia: "Media",
+    sbPeople: "People",
+    sbDays: "Days",
+    sbDateRange: "Date range",
+    sbMostActive: "Most active",
+    sbTopParticipants: "TOP PARTICIPANTS"
   },
   hi: {
     headerBadge: "✦ मुफ़्त और सुरक्षित",
@@ -104,7 +113,16 @@ const translations = {
     toastParseError: "इस फ़ाइल को पार्स नहीं किया जा सका। सुनिश्चित करें कि यह एक वैध WhatsApp एक्सपोर्ट है।",
     toastZipError: "ज़िप फ़ाइल को प्रोसेस नहीं किया जा सका।",
     toastNoTxt: "ज़िप के अंदर कोई .txt फ़ाइल नहीं मिली।",
-    toastNoMsgs: "कोई संदेश नहीं मिला"
+    toastNoMsgs: "कोई संदेश नहीं मिला",
+    sbViewAs: "इस रूप में देखें",
+    sbOverview: "चैट अवलोकन",
+    sbMessages: "संदेश",
+    sbMedia: "मीडिया",
+    sbPeople: "लोग",
+    sbDays: "दिन",
+    sbDateRange: "दिनांक सीमा",
+    sbMostActive: "सबसे सक्रिय",
+    sbTopParticipants: "शीर्ष भागीदार"
   },
   es: {
     headerBadge: "✦ Gratis y Privado",
@@ -153,7 +171,16 @@ const translations = {
     toastParseError: "No se pudo analizar el archivo. Asegúrate de que sea una exportación válida.",
     toastZipError: "No se pudo procesar el archivo zip.",
     toastNoTxt: "No se encontró ningún archivo .txt en el zip.",
-    toastNoMsgs: "No se encontraron mensajes"
+    toastNoMsgs: "No se encontraron mensajes",
+    sbViewAs: "VER COMO",
+    sbOverview: "RESUMEN DEL CHAT",
+    sbMessages: "Mensajes",
+    sbMedia: "Archivos",
+    sbPeople: "Personas",
+    sbDays: "Días",
+    sbDateRange: "Rango de fechas",
+    sbMostActive: "Más activo",
+    sbTopParticipants: "PARTICIPANTES PRINCIPALES"
   },
   fr: {
     headerBadge: "✦ Gratuit et Privé",
@@ -202,7 +229,16 @@ const translations = {
     toastParseError: "Impossible d'analyser ce fichier. Assurez-vous qu'il s'agit d'un export WhatsApp valide.",
     toastZipError: "Impossible de traiter le fichier zip.",
     toastNoTxt: "Aucun fichier .txt trouvé dans le zip.",
-    toastNoMsgs: "Aucun message trouvé"
+    toastNoMsgs: "Aucun message trouvé",
+    sbViewAs: "VOIR COMME",
+    sbOverview: "APERCU DE DISCUSSION",
+    sbMessages: "Messages",
+    sbMedia: "Médias",
+    sbPeople: "Personnes",
+    sbDays: "Jours",
+    sbDateRange: "Plage de dates",
+    sbMostActive: "Plus actif",
+    sbTopParticipants: "PARTICIPANTS PRINCIPAUX"
   },
   ar: {
     headerBadge: "✦ مجاني وخاص",
@@ -251,7 +287,16 @@ const translations = {
     toastParseError: "لا يمكن تحليل هذا الملف. تأكد من أنه تصدير واتساب صالح.",
     toastZipError: "لا يمكن معالجة ملف zip.",
     toastNoTxt: "لم يتم العثور على ملف .txt.",
-    toastNoMsgs: "لا توجد رسائل"
+    toastNoMsgs: "لا توجد رسائل",
+    sbViewAs: "عرض كـ",
+    sbOverview: "نظرة عامة على الدردشة",
+    sbMessages: "الرسائل",
+    sbMedia: "الوسائط",
+    sbPeople: "الأشخاص",
+    sbDays: "الأيام",
+    sbDateRange: "نطاق التاريخ",
+    sbMostActive: "الأكثر نشاطاً",
+    sbTopParticipants: "المشاركون الرئيسيون"
   },
   pt: {
     headerBadge: "✦ Grátis e Privado",
@@ -300,7 +345,16 @@ const translations = {
     toastParseError: "Não foi possível analisar este arquivo. Certifique-se de ser uma exportação válida.",
     toastZipError: "Não foi possível processar o arquivo zip.",
     toastNoTxt: "Nenhum arquivo .txt encontrado no zip.",
-    toastNoMsgs: "Nenhuma mensagem encontrada"
+    toastNoMsgs: "Nenhuma mensagem encontrada",
+    sbViewAs: "VER COMO",
+    sbOverview: "VISÃO GERAL DO CHAT",
+    sbMessages: "Mensagens",
+    sbMedia: "Mídia",
+    sbPeople: "Pessoas",
+    sbDays: "Dias",
+    sbDateRange: "Intervalo de datas",
+    sbMostActive: "Mais ativo",
+    sbTopParticipants: "PRINCIPAIS PARTICIPANTES"
   },
   zh: {
     headerBadge: "✦ 免费 & 隐私",
@@ -349,6 +403,15 @@ const translations = {
     toastParseError: "无法解析此文件。确保它是有效的 WhatsApp 导出。",
     toastZipError: "无法处理 zip 文件。",
     toastNoTxt: "在 zip 中找不到 .txt 文件。",
-    toastNoMsgs: "找不到任何消息"
+    toastNoMsgs: "找不到任何消息",
+    sbViewAs: "视图模式",
+    sbOverview: "聊天概览",
+    sbMessages: "消息",
+    sbMedia: "媒体",
+    sbPeople: "人数",
+    sbDays: "天数",
+    sbDateRange: "日期范围",
+    sbMostActive: "最活跃用户",
+    sbTopParticipants: "前五名成员"
   }
 };
