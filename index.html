@@ -2407,13 +2407,20 @@ async function downloadPDF() {
     // Wait for browser to repaint the expanded layout
     await new Promise(r => setTimeout(r, 800));
 
+    // Calculate total height to dynamically adjust scale to prevent browser canvas limits (blank pages)
+    const totalHeight = pdfWrapper.offsetHeight || frame.scrollHeight || 1000;
+    let canvasScale = 2.0;
+    if (totalHeight > 8000) canvasScale = 1.5;
+    if (totalHeight > 20000) canvasScale = 1.0;
+    if (totalHeight > 40000) canvasScale = 0.8;
+
     // 3. Configure html2pdf for high quality and no margins
     const opt = {
       margin:      0, 
       filename:    `${chatName}.pdf`,
-      image:       { type: 'jpeg', quality: 1.0 }, // Maximum quality
+      image:       { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
-        scale: 3, // Higher scale for crystal clear chats
+        scale: canvasScale, 
         useCORS: true, 
         backgroundColor: '#ffffff', 
         logging: false, 
