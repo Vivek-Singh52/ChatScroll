@@ -3127,44 +3127,56 @@ function switchModalTab(tab) {
 // Handle Contact Submit
 async function handleContactSubmit(e) {
   e.preventDefault();
-  const name = document.getElementById('c-name').value;
-  const email = document.getElementById('c-email').value;
-  const message = document.getElementById('c-message').value;
-  
-  const payload = {
-    type: 'contact',
-    name,
-    email,
-    message,
-    timestamp: new Date().toISOString()
-  };
-  
-  await DbTracker.submitFeedback(payload);
-  showToast(t('toastSubmitSuccess'), 'success');
-  toggleContactModal(false);
+  try {
+    const name = document.getElementById('c-name').value;
+    const email = document.getElementById('c-email').value;
+    const message = document.getElementById('c-message').value;
+    
+    const payload = {
+      type: 'contact',
+      name,
+      email,
+      message,
+      timestamp: new Date().toISOString()
+    };
+    
+    await DbTracker.submitFeedback(payload);
+    showToast(t('toastSubmitSuccess'), 'success');
+  } catch (err) {
+    console.error("Submit error:", err);
+    showToast("Submission failed: " + (err.message || err), "error");
+  } finally {
+    toggleContactModal(false);
+  }
 }
 
 // Handle Feedback Submit
 async function handleFeedbackSubmit(e) {
   e.preventDefault();
-  const name = document.getElementById('f-name').value;
-  const email = document.getElementById('f-email').value;
-  const ratingEl = document.querySelector('input[name="rating"]:checked');
-  const rating = ratingEl ? parseInt(ratingEl.value) : 5;
-  const message = document.getElementById('f-message').value;
-  
-  const payload = {
-    type: 'feedback',
-    name,
-    email,
-    rating,
-    message,
-    timestamp: new Date().toISOString()
-  };
-  
-  await DbTracker.submitFeedback(payload);
-  showToast(t('toastSubmitSuccess'), 'success');
-  toggleContactModal(false);
+  try {
+    const name = document.getElementById('f-name').value;
+    const email = document.getElementById('f-email').value;
+    const ratingEl = document.querySelector('input[name="rating"]:checked');
+    const rating = ratingEl ? parseInt(ratingEl.value) : 5;
+    const message = document.getElementById('f-message').value;
+    
+    const payload = {
+      type: 'feedback',
+      name,
+      email,
+      rating,
+      message,
+      timestamp: new Date().toISOString()
+    };
+    
+    await DbTracker.submitFeedback(payload);
+    showToast(t('toastSubmitSuccess'), 'success');
+  } catch (err) {
+    console.error("Submit error:", err);
+    showToast("Submission failed: " + (err.message || err), "error");
+  } finally {
+    toggleContactModal(false);
+  }
 }
 </script>
 </body>
