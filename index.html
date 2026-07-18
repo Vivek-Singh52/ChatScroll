@@ -2501,6 +2501,11 @@ function applyFilters() {
 
 /* ═══════════════════════════ PDF EXPORT ═════════════════════════════ */
 async function downloadPDF() {
+  // Remote config guard – bail if admin disabled PDF exports
+  if (window._pdfDisabled || window._readOnly) {
+    alert('PDF export is currently disabled. Please try again later.');
+    return;
+  }
   const overlay = document.getElementById('pdf-overlay');
   overlay.classList.add('visible');
   await new Promise(r => setTimeout(r, 200));
@@ -2975,6 +2980,8 @@ function generateInsights() {
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<!-- App Remote Config (must load after Firebase SDK) -->
+<script src="config-loader.js"></script>
 
 <script>
 // Firebase configuration (with placeholders)

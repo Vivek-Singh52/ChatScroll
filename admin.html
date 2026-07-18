@@ -851,38 +851,85 @@
     
     <!-- TAB 3: APP CONFIG -->
     <div class="tab-content" id="tab-config">
+
+      <!-- Save Status Toast -->
+      <div id="cfg-toast" style="display:none; position:fixed; bottom:32px; right:32px; background:#25d366; color:#fff; padding:12px 24px; border-radius:12px; font-size:14px; font-weight:600; z-index:9999; box-shadow:0 4px 20px rgba(37,211,102,0.4); animation: fadeInUp 0.3s ease;">✓ Setting saved to Firebase</div>
+
       <div class="config-card">
-        <h3 class="config-title">App Configuration & Remotes</h3>
+        <h3 class="config-title">🔧 App Controls</h3>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">Changes are saved to Firebase instantly and take effect on the public site within seconds.</p>
+
         <div class="config-row">
           <div class="config-info">
-            <h4>Maintenance Mode</h4>
-            <p>Restrict public access and display temporary maintenance screen.</p>
+            <h4>🚧 Maintenance Mode</h4>
+            <p>Show a maintenance page to all public users. Admin panel stays accessible.</p>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" id="conf-maintenance" />
+            <input type="checkbox" id="conf-maintenance" onchange="saveConfig('maintenance', this.checked)" />
             <span class="slider"></span>
           </label>
         </div>
+
         <div class="config-row">
           <div class="config-info">
-            <h4>Disable PDF Downloads</h4>
-            <p>Temporarily disable heavy PDF conversions to reduce load.</p>
+            <h4>📵 Disable PDF Downloads</h4>
+            <p>Hide the Export PDF button and block PDF generation to reduce server load.</p>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" id="conf-disable-pdf" />
+            <input type="checkbox" id="conf-disable-pdf" onchange="saveConfig('disablePdf', this.checked)" />
             <span class="slider"></span>
           </label>
         </div>
+
         <div class="config-row">
           <div class="config-info">
-            <h4>Debug/Verbose Logging</h4>
-            <p>Log all transaction traces inside Firestore for diagnostics.</p>
+            <h4>📝 Disable New Feedback</h4>
+            <p>Close the feedback / contact form. Users see a "temporarily unavailable" notice.</p>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" id="conf-debug" />
+            <input type="checkbox" id="conf-disable-feedback" onchange="saveConfig('disableFeedback', this.checked)" />
             <span class="slider"></span>
           </label>
         </div>
+
+        <div class="config-row">
+          <div class="config-info">
+            <h4>🔒 Read-Only Mode</h4>
+            <p>Users can view chats but cannot export or interact. Useful during peak load.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="conf-readonly" onchange="saveConfig('readOnly', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="config-row">
+          <div class="config-info">
+            <h4>🐛 Debug / Verbose Logging</h4>
+            <p>Enable detailed console logs for diagnostics. Does not affect end-user experience.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="conf-debug" onchange="saveConfig('debug', this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="config-card" style="margin-top:20px;">
+        <h3 class="config-title">📢 Banner Message</h3>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Show a custom info banner at the top of the public site. Leave blank to hide it.</p>
+        <div style="display:flex;gap:12px;align-items:stretch;">
+          <textarea id="conf-banner-text" rows="3"
+            placeholder="e.g. We're performing scheduled maintenance on July 20. PDF export may be temporarily unavailable."
+            style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;padding:12px;font-size:14px;resize:vertical;"></textarea>
+          <button onclick="saveBannerText()" style="background:linear-gradient(135deg,#25d366,#00bfa5);border:none;border-radius:10px;color:#fff;font-weight:600;padding:0 20px;cursor:pointer;font-size:14px;">Save Banner</button>
+        </div>
+      </div>
+
+      <div class="config-card" style="margin-top:20px;">
+        <h3 class="config-title">📊 Live Config Snapshot</h3>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Current values stored in Firebase.</p>
+        <pre id="cfg-snapshot" style="background:rgba(0,0,0,0.3);border-radius:10px;padding:16px;font-size:13px;color:#25d366;overflow-x:auto;">Loading…</pre>
       </div>
     </div>
     
@@ -892,6 +939,7 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
 
 <script>
   // Firebase configuration (Sync this with index.html)
@@ -983,13 +1031,55 @@
   // 3. Load & Render Data
   async function initDashboard() {
     await DbTracker.init();
-    
+
+    // Load config and populate all toggles
+    const cfg = await ConfigHelper.load();
+    document.getElementById('conf-maintenance').checked    = !!cfg.maintenance;
+    document.getElementById('conf-disable-pdf').checked    = !!cfg.disablePdf;
+    document.getElementById('conf-disable-feedback').checked = !!cfg.disableFeedback;
+    document.getElementById('conf-readonly').checked       = !!cfg.readOnly;
+    document.getElementById('conf-debug').checked          = !!cfg.debug;
+    document.getElementById('conf-banner-text').value      = cfg.bannerText || '';
+    window.DEBUG = !!cfg.debug;
+
+    // Render snapshot
+    refreshCfgSnapshot(cfg);
+
     if (!DbTracker.isConfigured()) {
       document.getElementById('sim-alert').style.display = 'flex';
     }
-    
     loadStats();
     loadFeedbacks();
+  }
+
+  // ── Config helpers ───────────────────────────────────────────────────────
+  async function saveConfig(key, value) {
+    await ConfigHelper.save(key, value);
+    if (key === 'debug') window.DEBUG = value;
+    showCfgToast();
+    // Refresh snapshot
+    const cfg = await ConfigHelper.load();
+    refreshCfgSnapshot(cfg);
+  }
+
+  async function saveBannerText() {
+    const text = document.getElementById('conf-banner-text').value.trim();
+    await ConfigHelper.save('bannerText', text);
+    showCfgToast();
+    const cfg = await ConfigHelper.load();
+    refreshCfgSnapshot(cfg);
+  }
+
+  function showCfgToast() {
+    const t = document.getElementById('cfg-toast');
+    t.style.display = 'block';
+    clearTimeout(window._cfgToastTimer);
+    window._cfgToastTimer = setTimeout(() => { t.style.display = 'none'; }, 2500);
+  }
+
+  function refreshCfgSnapshot(cfg) {
+    const el = document.getElementById('cfg-snapshot');
+    if (el) el.textContent = JSON.stringify(cfg, null, 2);
   }
 
   function loadStats() {
