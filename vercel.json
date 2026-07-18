@@ -1,5 +1,8 @@
 {
   "name": "chatscroll",
   "buildCommand": "echo 'Skipping build on Vercel'",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/admin", "destination": "/admin.html" }
+  ]
 }

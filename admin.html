@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatScroll Admin Dashboard</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #0a0a12;
+      color: #f1f1f8;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Background Canvas */
+    .bg-canvas {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: -2;
+      overflow: hidden;
+    }
+    .bg-grid {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.15;
+      background: linear-gradient(135deg, #00bfa5 0%, #005c4b 100%);
+      width: 500px;
+      height: 500px;
+      top: -100px;
+      right: -100px;
+    }
+    
+    /* Login Form Styles */
+    .login-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .login-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 28px;
+      padding: 48px 40px;
+      width: 440px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 8px 32px rgba(37, 211, 102, 0.2);
+    }
+    .login-logo img {
+      width: 140%;
+      height: 140%;
+      object-fit: contain;
+    }
+    .login-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .login-subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 36px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      color: rgba(255,255,255,0.7);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+    .form-control {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s;
+    }
+    .form-control:focus {
+      border-color: #00bfa5;
+      background: rgba(255,255,255,0.08);
+      box-shadow: 0 0 16px rgba(0, 191, 165, 0.25);
+    }
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(135deg, #00bfa5 0%, #007a61 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(0, 191, 165, 0.25);
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 191, 165, 0.4);
+    }
+    .login-error {
+      color: #ff5252;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+    
+    /* Main Dashboard Layout */
+    .dashboard-layout {
+      display: none; /* hidden until logged in */
+      min-height: 100vh;
+      grid-template-columns: 260px 1fr;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background: rgba(10, 10, 18, 0.8);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 48px;
+    }
+    .brand-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .brand-circle img {
+      width: 150%; height: 150%; object-fit: contain;
+    }
+    .brand-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .sidebar-menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .menu-item button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+    .menu-item.active button {
+      color: #25d366;
+      background: rgba(37, 211, 102, 0.08);
+      font-weight: 600;
+    }
+    .menu-item button:hover:not(.active) {
+      color: #fff;
+      background: rgba(255,255,255,0.03);
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 24px;
+    }
+    .btn-logout {
+      width: 100%;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 10px;
+      color: rgba(255,255,255,0.7);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover {
+      border-color: #ff5252;
+      color: #ff5252;
+      background: rgba(255, 82, 82, 0.05);
+    }
+    
+    /* Main Content */
+    .main-content {
+      padding: 40px 48px;
+      overflow-y: auto;
+    }
+    .header-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 36px;
+    }
+    .panel-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    /* Simulation Alert Bar */
+    .sim-alert {
+      background: rgba(255, 179, 0, 0.06);
+      border: 1px solid rgba(255, 179, 0, 0.2);
+      border-radius: 14px;
+      padding: 14px 20px;
+      color: #ffb300;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .sim-alert strong { font-weight: 600; }
+    
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    /* Charts Container */
+    .dashboard-charts {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .chart-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 24px;
+      min-height: 380px;
+    }
+    .chart-header {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+    
+    /* Feedbacks Inbox list */
+    .inbox-container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.01);
+      overflow: hidden;
+      height: 600px;
+    }
+    .inbox-sidebar {
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+    }
+    .inbox-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 600;
+    }
+    .inbox-list {
+      overflow-y: auto;
+      flex: 1;
+    }
+    .inbox-item {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .inbox-item:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .inbox-item.active {
+      background: rgba(37, 211, 102, 0.05);
+    }
+    .inbox-item.unread::before {
+      content: '';
+      position: absolute;
+      left: 8px; top: calc(50% - 4px);
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #00bfa5;
+    }
+    .inbox-item-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .inbox-item-name {
+      font-weight: 600;
+      font-size: 14px;
+      max-width: 160px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .inbox-item-time {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+    .inbox-item-preview {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .badge-type {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 6px;
+      display: inline-block;
+    }
+    .badge-type.feedback { background: rgba(255, 179, 0, 0.15); color: #ffb300; }
+    .badge-type.contact { background: rgba(0, 191, 165, 0.15); color: #00bfa5; }
+    
+    .inbox-detail {
+      display: flex;
+      flex-direction: column;
+      background: rgba(255,255,255,0.005);
+    }
+    .inbox-detail-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: rgba(255,255,255,0.3);
+      font-size: 14px;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .detail-body {
+      padding: 32px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .detail-header {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .detail-sender-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .detail-sender-email {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+    .detail-message {
+      font-size: 15px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 32px;
+      white-space: pre-wrap;
+    }
+    
+    /* Stars display */
+    .detail-stars {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .detail-stars span {
+      font-size: 20px;
+      color: #ffb300;
+    }
+    
+    /* Ticket Reply Section */
+    .reply-section {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 24px 32px;
+      background: rgba(255,255,255,0.01);
+    }
+    .reply-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      resize: none;
+      transition: all 0.3s;
+      margin-bottom: 16px;
+    }
+    .reply-textarea:focus {
+      border-color: #00bfa5;
+      background: rgba(255,255,255,0.06);
+    }
+    .reply-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: flex-end;
+    }
+    .btn-reply-send {
+      background: #25d366;
+      color: #0a0a12;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-reply-send:hover {
+      background: #128c7e;
+      color: #fff;
+    }
+    .btn-resolve {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px 20px;
+      color: rgba(255,255,255,0.7);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-resolve:hover {
+      border-color: #00bfa5;
+      color: #00bfa5;
+      background: rgba(0, 191, 165, 0.05);
+    }
+    
+    /* Config Panel */
+    .config-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 600px;
+    }
+    .config-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .config-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .config-row:last-child { border-bottom: none; }
+    .config-info h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .config-info p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+    }
+    .toggle-switch input { display: none; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255,255,255,0.1);
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px; width: 20px;
+      left: 4px; bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #25d366; }
+    input:checked + .slider:before { transform: translateX(24px); }
+    
+    /* Tabs visibility */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="bg-grid"></div>
+  <div class="bg-blob"></div>
+</div>
+
+<!-- 1. LOGIN INTERFACE -->
+<div class="login-container" id="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="logo.png" alt="ChatScroll" />
+    </div>
+    <h2 class="login-title">ChatScroll</h2>
+    <p class="login-subtitle">Admin Dashboard Control Center</p>
+    
+    <form onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" class="form-control" placeholder="Enter username" required />
+      </div>
+      <div class="form-group" style="margin-bottom: 30px;">
+        <label for="password">Password</label>
+        <input type="password" id="password" class="form-control" placeholder="Enter password" required />
+      </div>
+      <button type="submit" class="btn-login">Login Securely</button>
+      <div class="login-error" id="login-error">Invalid Username or Password. Please try again.</div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. MAIN DASHBOARD LAYOUT -->
+<div class="dashboard-layout" id="dashboard-layout">
+  
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-circle">
+        <img src="logo.png" alt="Logo" />
+      </div>
+      <span class="brand-text">ChatScroll</span>
+    </div>
+    
+    <ul class="sidebar-menu">
+      <li class="menu-item active" id="menu-dash" onclick="switchTab('dash')">
+        <button>📊 Dashboard</button>
+      </li>
+      <li class="menu-item" id="menu-inbox" onclick="switchTab('inbox')">
+        <button>✉ Feedback Inbox <span id="inbox-count" style="display:none; margin-left:auto; background:#ff5252; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:700;">0</span></button>
+      </li>
+      <li class="menu-item" id="menu-config" onclick="switchTab('config')">
+        <button>⚙ App Settings</button>
+      </li>
+    </ul>
+    
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="handleLogout()">Logout Session</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Simulation alert when Firebase is unconfigured -->
+    <div class="sim-alert" id="sim-alert" style="display:none;">
+      <span>ℹ️</span>
+      <div>
+        <strong>Local Simulation Mode Active:</strong> Firebase credentials are not configured yet. The dashboard is currently displaying local storage activity logs and feedback submissions from this browser.
+      </div>
+    </div>
+    
+    <!-- HEADER -->
+    <div class="header-panel">
+      <h1 class="panel-title" id="panel-title-text">Admin Insights</h1>
+    </div>
+    
+    <!-- TAB 1: DASHBOARD -->
+    <div class="tab-content active" id="tab-dash">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Uses</span>
+          <span class="stat-value" id="val-uses">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">File Uploads</span>
+          <span class="stat-value" id="val-uploads">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">PDF Downloads</span>
+          <span class="stat-value" id="val-downloads">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Feedback / Contacts</span>
+          <span class="stat-value" id="val-tickets">0</span>
+        </div>
+      </div>
+      
+      <div class="dashboard-charts">
+        <div class="chart-card">
+          <h3 class="chart-header">Application Usage Trend (Last 7 Days)</h3>
+          <canvas id="usageChart"></canvas>
+        </div>
+        <div class="chart-card" style="display: flex; flex-direction: column;">
+          <h3 class="chart-header">Engagement Breakdown</h3>
+          <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+            <canvas id="breakdownChart" style="max-height:220px;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TAB 2: INBOX -->
+    <div class="tab-content" id="tab-inbox">
+      <div class="inbox-container">
+        <!-- Sidebar Item List -->
+        <div class="inbox-sidebar">
+          <div class="inbox-header">Messages</div>
+          <div class="inbox-list" id="inbox-items-container">
+            <!-- Dynamic Items -->
+          </div>
+        </div>
+        <!-- Detail Panel -->
+        <div class="inbox-detail" id="inbox-detail-panel">
+          <div class="inbox-detail-empty" id="inbox-empty-view">
+            <span>✉</span>
+            <p>Select a message from the list to view details and reply</p>
+          </div>
+          <div class="detail-content" id="inbox-full-view" style="display:none; height:100%; flex-direction:column;">
+            <div class="detail-body">
+              <div class="detail-header">
+                <div>
+                  <h3 class="detail-sender-name" id="det-name">User Name</h3>
+                  <div class="detail-sender-email" id="det-email">user@example.com</div>
+                  <span class="badge-type" id="det-badge">FEEDBACK</span>
+                </div>
+                <div class="inbox-item-time" id="det-time">July 18, 12:45 PM</div>
+              </div>
+              <div class="detail-stars" id="det-stars-container" style="display:none;">
+                <!-- dynamic stars -->
+              </div>
+              <div class="detail-message" id="det-message">
+                User message contents go here...
+              </div>
+            </div>
+            
+            <div class="reply-section">
+              <textarea class="reply-textarea" id="reply-text" rows="3" placeholder="Draft your reply mail here..."></textarea>
+              <div class="reply-actions">
+                <button class="btn-resolve" onclick="markTicketStatus('resolved')">Resolve Ticket</button>
+                <button class="btn-reply-send" onclick="sendReplyEmail()">✉ Send Email Reply</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TAB 3: APP CONFIG -->
+    <div class="tab-content" id="tab-config">
+      <div class="config-card">
+        <h3 class="config-title">App Configuration & Remotes</h3>
+        <div class="config-row">
+          <div class="config-info">
+            <h4>Maintenance Mode</h4>
+            <p>Restrict public access and display temporary maintenance screen.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="conf-maintenance" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="config-row">
+          <div class="config-info">
+            <h4>Disable PDF Downloads</h4>
+            <p>Temporarily disable heavy PDF conversions to reduce load.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="conf-disable-pdf" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="config-row">
+          <div class="config-info">
+            <h4>Debug/Verbose Logging</h4>
+            <p>Log all transaction traces inside Firestore for diagnostics.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="conf-debug" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+    
+  </main>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Firebase configuration (Sync this with index.html)
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY_HERE",
+    authDomain: "YOUR_AUTH_DOMAIN_HERE",
+    projectId: "YOUR_PROJECT_ID_HERE",
+    storageBucket: "YOUR_STORAGE_BUCKET_HERE",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
+    appId: "YOUR_APP_ID_HERE"
+  };
+
+  const DbTracker = {
+    isConfigured: function() {
+      return typeof firebase !== 'undefined' && firebaseConfig && firebaseConfig.apiKey !== "YOUR_API_KEY_HERE" && firebaseConfig.apiKey !== "";
+    },
+    init: async function() {
+      if (this.isConfigured()) {
+        try {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          this.db = firebase.firestore();
+        } catch (err) {
+          console.error("Firebase init failed:", err);
+        }
+      }
+    }
+  };
+
+  // State Management
+  let activeTab = 'dash';
+  let statsData = { uses: 0, uploads: 0, downloads: 0, tickets: 0 };
+  let feedbacksList = [];
+  let selectedTicketId = null;
+  let usageChart = null;
+  let breakdownChart = null;
+
+  // 1. Authentication
+  function checkSession() {
+    const isAdmin = sessionStorage.getItem('chatscroll_admin_session') === 'true';
+    if (isAdmin) {
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('dashboard-layout').style.display = 'grid';
+      initDashboard();
+    } else {
+      document.getElementById('login-container').style.display = 'flex';
+      document.getElementById('dashboard-layout').style.display = 'none';
+    }
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const userVal = document.getElementById('username').value;
+    const passVal = document.getElementById('password').value;
+    const errorEl = document.getElementById('login-error');
+
+    if (userVal === 'ChatScroll' && passVal === '@Vs522005') {
+      sessionStorage.setItem('chatscroll_admin_session', 'true');
+      errorEl.style.display = 'none';
+      checkSession();
+    } else {
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem('chatscroll_admin_session');
+    checkSession();
+  }
+
+  // 2. Tab Navigation
+  function switchTab(tabId) {
+    activeTab = tabId;
+    
+    // Manage Menu highlight
+    document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('menu-' + tabId).classList.add('active');
+    
+    // Manage Tab visibility
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    
+    // Update title text
+    const titles = { dash: 'Admin Insights', inbox: 'Feedback Inbox', config: 'App Settings' };
+    document.getElementById('panel-title-text').innerText = titles[tabId];
+  }
+
+  // 3. Load & Render Data
+  async function initDashboard() {
+    await DbTracker.init();
+    
+    if (!DbTracker.isConfigured()) {
+      document.getElementById('sim-alert').style.display = 'flex';
+    }
+    
+    loadStats();
+    loadFeedbacks();
+  }
+
+  function loadStats() {
+    let todayStr = new Date().toISOString().split('T')[0];
+    
+    if (DbTracker.isConfigured() && DbTracker.db) {
+      // Real Firebase Integration
+      // Load Totals
+      DbTracker.db.collection('stats').doc('totals').get().then(doc => {
+        if (doc.exists) {
+          const d = doc.data();
+          statsData.uses = d.uses || 0;
+          statsData.uploads = d.uploads || 0;
+          statsData.downloads = d.downloads || 0;
+          updateStatUI();
+        }
+      });
+      
+      // Load last 7 days for chart
+      DbTracker.db.collection('stats').where('date', '!=', null).get().then(snapshot => {
+        let chartData = [];
+        snapshot.forEach(doc => {
+          if (doc.id !== 'totals') chartData.push(doc.data());
+        });
+        chartData.sort((a,b) => a.date.localeCompare(b.date));
+        renderCharts(chartData.slice(-7));
+      });
+      
+    } else {
+      // LocalStorage Simulation Data
+      const localStats = JSON.parse(localStorage.getItem('chatscroll_local_stats') || '{}');
+      const totals = localStats['totals'] || { uses: 0, uploads: 0, downloads: 0 };
+      
+      statsData.uses = totals.uses;
+      statsData.uploads = totals.uploads;
+      statsData.downloads = totals.downloads;
+      updateStatUI();
+      
+      // Build 7-day dummy timeline ending today
+      let timeline = [];
+      for (let i = 6; i >= 0; i--) {
+        let date = new Date();
+        date.setDate(date.getDate() - i);
+        let dateStr = date.toISOString().split('T')[0];
+        let dayStats = localStats[dateStr] || { uses: Math.floor(Math.random() * 5), uploads: 0, downloads: 0 };
+        timeline.push({
+          date: dateStr.substring(5), // e.g. "07-18"
+          uses: dayStats.uses,
+          uploads: dayStats.uploads,
+          downloads: dayStats.downloads
+        });
+      }
+      renderCharts(timeline);
+    }
+  }
+
+  function updateStatUI() {
+    document.getElementById('val-uses').innerText = statsData.uses;
+    document.getElementById('val-uploads').innerText = statsData.uploads;
+    document.getElementById('val-downloads').innerText = statsData.downloads;
+  }
+
+  function renderCharts(dataList) {
+    const labels = dataList.map(d => d.date);
+    const uses = dataList.map(d => d.uses);
+    const uploads = dataList.map(d => d.uploads);
+    const downloads = dataList.map(d => d.downloads);
+    
+    // Usage chart (Line)
+    const ctxUsage = document.getElementById('usageChart').getContext('2d');
+    if (usageChart) usageChart.destroy();
+    usageChart = new Chart(ctxUsage, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Uses / Sessions',
+            data: uses,
+            borderColor: '#25d366',
+            backgroundColor: 'rgba(37, 211, 102, 0.04)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 3
+          },
+          {
+            label: 'Files Processed',
+            data: uploads,
+            borderColor: '#00bfa5',
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#88889b' } }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#88889b' } },
+          y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#88889b' } }
+        }
+      }
+    });
+    
+    // Breakdown chart (Doughnut)
+    const ctxBreakdown = document.getElementById('breakdownChart').getContext('2d');
+    if (breakdownChart) breakdownChart.destroy();
+    breakdownChart = new Chart(ctxBreakdown, {
+      type: 'doughnut',
+      data: {
+        labels: ['File Uploads', 'PDF Exports', 'Bounces / Views Only'],
+        datasets: [{
+          data: [
+            statsData.uploads,
+            statsData.downloads,
+            Math.max(0, statsData.uses - statsData.uploads)
+          ],
+          backgroundColor: ['#00bfa5', '#25d366', 'rgba(255, 255, 255, 0.05)'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#88889b', boxWidth: 12 } }
+        }
+      }
+    });
+  }
+
+  // 4. Feedback Inbox System
+  function loadFeedbacks() {
+    if (DbTracker.isConfigured() && DbTracker.db) {
+      DbTracker.db.collection('feedbacks').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+        feedbacksList = [];
+        snapshot.forEach(doc => {
+          feedbacksList.push({ id: doc.id, ...doc.data() });
+        });
+        renderInbox();
+      });
+    } else {
+      feedbacksList = JSON.parse(localStorage.getItem('chatscroll_local_feedbacks') || '[]');
+      // Sort desc
+      feedbacksList.sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+      renderInbox();
+    }
+  }
+
+  function renderInbox() {
+    const listContainer = document.getElementById('inbox-items-container');
+    listContainer.innerHTML = '';
+    
+    const pendingTickets = feedbacksList.filter(f => f.status === 'pending');
+    document.getElementById('val-tickets').innerText = feedbacksList.length;
+    
+    const badgeEl = document.getElementById('inbox-count');
+    if (pendingTickets.length > 0) {
+      badgeEl.innerText = pendingTickets.length;
+      badgeEl.style.display = 'inline-block';
+    } else {
+      badgeEl.style.display = 'none';
+    }
+    
+    if (feedbacksList.length === 0) {
+      listContainer.innerHTML = `<div style="padding:40px 20px;text-align:center;color:rgba(255,255,255,0.25);font-size:13px;">No messages received yet.</div>`;
+      return;
+    }
+    
+    feedbacksList.forEach(ticket => {
+      const item = document.createElement('div');
+      item.className = `inbox-item ${ticket.status === 'pending' ? 'unread' : ''} ${selectedTicketId === ticket.id ? 'active' : ''}`;
+      item.onclick = () => selectTicket(ticket.id);
+      
+      const date = new Date(ticket.timestamp);
+      const timeStr = date.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' ' + date.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+      
+      item.innerHTML = `
+        <div class="inbox-item-top">
+          <span class="inbox-item-name">${ticket.name}</span>
+          <span class="inbox-item-time">${timeStr}</span>
+        </div>
+        <div class="inbox-item-preview">${ticket.message}</div>
+        <span class="badge-type ${ticket.type}">${ticket.type}</span>
+      `;
+      listContainer.appendChild(item);
+    });
+  }
+
+  function selectTicket(id) {
+    selectedTicketId = id;
+    renderInbox(); // update active state
+    
+    const ticket = feedbacksList.find(f => f.id === id);
+    if (!ticket) return;
+    
+    document.getElementById('inbox-empty-view').style.display = 'none';
+    document.getElementById('inbox-full-view').style.display = 'flex';
+    
+    document.getElementById('det-name').innerText = ticket.name;
+    document.getElementById('det-email').innerText = ticket.email;
+    document.getElementById('det-message').innerText = ticket.message;
+    
+    const date = new Date(ticket.timestamp);
+    document.getElementById('det-time').innerText = date.toLocaleString();
+    
+    const badge = document.getElementById('det-badge');
+    badge.innerText = ticket.type;
+    badge.className = `badge-type ${ticket.type}`;
+    
+    const starsContainer = document.getElementById('det-stars-container');
+    if (ticket.type === 'feedback' && ticket.rating) {
+      starsContainer.style.display = 'flex';
+      starsContainer.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const star = document.createElement('span');
+        star.innerText = i < ticket.rating ? '★' : '☆';
+        starsContainer.appendChild(star);
+      }
+    } else {
+      starsContainer.style.display = 'none';
+    }
+    
+    // Prefill reply draft
+    const replyArea = document.getElementById('reply-text');
+    replyArea.value = `Hi ${ticket.name},\n\nThank you for reaching out to ChatScroll support! We've received your message:\n"${ticket.message.substring(0, 80)}..."\n\n[Your reply here]\n\nBest regards,\nVivek Singh (ChatScroll Creator)`;
+  }
+
+  async function markTicketStatus(newStatus) {
+    if (!selectedTicketId) return;
+    
+    if (DbTracker.isConfigured() && DbTracker.db) {
+      try {
+        await DbTracker.db.collection('feedbacks').doc(selectedTicketId).update({
+          status: newStatus
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      // Local
+      let feedbacks = JSON.parse(localStorage.getItem('chatscroll_local_feedbacks') || '[]');
+      const idx = feedbacks.findIndex(f => f.id === selectedTicketId);
+      if (idx !== -1) {
+        feedbacks[idx].status = newStatus;
+        localStorage.setItem('chatscroll_local_feedbacks', JSON.stringify(feedbacks));
+        loadFeedbacks();
+        selectTicket(selectedTicketId);
+      }
+    }
+  }
+
+  function sendReplyEmail() {
+    if (!selectedTicketId) return;
+    const ticket = feedbacksList.find(f => f.id === selectedTicketId);
+    if (!ticket) return;
+    
+    const replyBody = document.getElementById('reply-text').value;
+    const subject = `Re: ChatScroll ${ticket.type === 'feedback' ? 'Feedback' : 'Query'} from ${ticket.name}`;
+    
+    // Open system email program prefilled
+    const mailtoUrl = `mailto:${ticket.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyBody)}`;
+    window.open(mailtoUrl, '_blank');
+    
+    // Auto resolve the ticket
+    markTicketStatus('resolved');
+  }
+
+  // Check session on load
+  document.addEventListener('DOMContentLoaded', () => {
+    checkSession();
+  });
+</script>
+</body>
+</html>

@@ -64,7 +64,18 @@ const translations = {
     sbDays: "Days",
     sbDateRange: "Date range",
     sbMostActive: "Most active",
-    sbTopParticipants: "TOP PARTICIPANTS"
+    sbTopParticipants: "TOP PARTICIPANTS",
+    btnContactFeedback: "Contact & Feedback",
+    modalTitle: "Get in Touch",
+    tabContact: "✉ Contact Us",
+    tabFeedback: "⭐ Give Feedback",
+    lblFormName: "Your Name",
+    lblFormEmail: "Your Email",
+    lblFormMessage: "Message",
+    lblFormRating: "Rating",
+    lblFormComments: "Comments",
+    btnSubmit: "Submit",
+    toastSubmitSuccess: "Submitted successfully! Thank you. 😊"
   },
   hi: {
     headerBadge: "✦ मुफ़्त और सुरक्षित",
@@ -131,7 +142,18 @@ const translations = {
     avgWords: "प्रति संदेश औसत शब्द:",
     mostEmojis: "सबसे ज्यादा इस्तेमाल किए गए इमोजी:",
     wordsUnit: "शब्द",
-    msgsUnit: "संदेश"
+    msgsUnit: "संदेश",
+    btnContactFeedback: "संपर्क और प्रतिक्रिया",
+    modalTitle: "संपर्क करें",
+    tabContact: "✉ संपर्क करें",
+    tabFeedback: "⭐ प्रतिक्रिया दें",
+    lblFormName: "आपका नाम",
+    lblFormEmail: "आपका ईमेल",
+    lblFormMessage: "संदेश",
+    lblFormRating: "रेटिंग",
+    lblFormComments: "टिप्पणी",
+    btnSubmit: "जमा करें",
+    toastSubmitSuccess: "सफलतापूर्वक जमा किया गया! धन्यवाद। 😊"
   },
   es: {
     headerBadge: "✦ Gratis y Privado",

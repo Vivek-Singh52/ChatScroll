@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ChatScroll</string>
+    <string name="title_activity_main">ChatScroll</string>
+    <string name="package_name">com.vivifylabs.chatscroll</string>
+    <string name="custom_url_scheme">com.vivifylabs.chatscroll</string>
+</resources>

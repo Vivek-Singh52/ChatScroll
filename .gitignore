@@ -2,3 +2,12 @@
 *.zip
 *.txt
 !README.md
+
+.vercel
+node_modules/
+www/
+assets/
+android/app/build/
+android/.gradle/
+android/.idea/
+android/local.properties
