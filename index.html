@@ -2384,6 +2384,22 @@ async function downloadPDF() {
     `;
     frame.insertBefore(titleBar, frame.firstChild);
 
+    // Create a temporary 1440px wrapper to shift the chat to the right half of the page
+    const pdfWrapper = document.createElement('div');
+    pdfWrapper.id = 'temp-pdf-wrapper';
+    pdfWrapper.style.cssText = `
+      width: 1440px !important;
+      background: #ffffff !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+    `;
+    
+    // Put frame inside the wrapper
+    const originalParent = frame.parentNode;
+    const nextSibling = frame.nextSibling;
+    pdfWrapper.appendChild(frame);
+    document.body.appendChild(pdfWrapper);
+
     // Scroll to top to prevent html2canvas culling bugs
     window.scrollTo(0, 0);
 
@@ -2401,20 +2417,31 @@ async function downloadPDF() {
         backgroundColor: '#ffffff', 
         logging: false, 
         allowTaint: true,
-        windowWidth: 720
+        windowWidth: 1440
       },
       jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] },
     };
 
-    // 4. Generate PDF directly from the live frame
-    await html2pdf().set(opt).from(frame).save();
+    // 4. Generate PDF directly from the live wrapper
+    await html2pdf().set(opt).from(pdfWrapper).save();
     showToast('PDF downloaded successfully! 🎉', 'success');
 
   } catch(err) {
     console.error('PDF error:', err);
     showToast('PDF failed: ' + (err.message || 'Unknown error'), 'error');
   } finally {
+    // Restore frame to original position
+    const pdfWrapper = document.getElementById('temp-pdf-wrapper');
+    if (pdfWrapper) {
+      const chatSection = document.getElementById('chat-section');
+      const dashboardMain = chatSection.querySelector('.dashboard-main');
+      if (dashboardMain) {
+        dashboardMain.appendChild(frame);
+      }
+      pdfWrapper.remove();
+    }
+
     // 5. Restore everything
     document.body.style.overflow = originalBodyOverflow;
     document.documentElement.style.overflow = originalHtmlOverflow;
