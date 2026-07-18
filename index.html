@@ -2433,8 +2433,12 @@ async function downloadPDF() {
 /* ═══════════════════════════ RESET ══════════════════════════════════ */
 function resetApp() {
   parsedMessages = [];
+  filteredMessages = [];
   chatName       = 'WhatsApp Chat';
   myName         = null;
+  viewAsUser     = 'system';
+  filterSearchQuery = '';
+  filterSenders  = [];
   colorIdx       = 0;
   Object.keys(senderColors).forEach(k => delete senderColors[k]);
   
@@ -2442,8 +2446,24 @@ function resetApp() {
   Object.values(mediaUrls).forEach(url => URL.revokeObjectURL(url));
   mediaUrls = {};
 
+  // Destroy charts
+  if (window.activityChartInstance) {
+    window.activityChartInstance.destroy();
+    window.activityChartInstance = null;
+  }
+  if (window.distChartInstance) {
+    window.distChartInstance.destroy();
+    window.distChartInstance = null;
+  }
+
+  // Clear inputs
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-date-start').value = '';
+  document.getElementById('filter-date-end').value = '';
+
   document.getElementById('wa-messages').innerHTML = '';
   document.getElementById('chat-section').classList.remove('visible');
+  document.getElementById('chat-insights').classList.remove('visible');
   document.getElementById('upload-section').style.display = 'block';
   document.getElementById('file-input').value = '';
   updateProgress(0);
