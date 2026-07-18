@@ -1624,7 +1624,7 @@
 
   <!-- UPLOAD -->
   <div class="upload-section" id="upload-section">
-    <div class="upload-card" id="drop-zone">
+    <label for="file-input" class="upload-card" id="drop-zone" style="display: block;">
       <span class="upload-icon">📂</span>
       <h2 data-i18n="uploadTitle">Drop your WhatsApp chat file here</h2>
       <p data-i18n="uploadDesc">Drag &amp; drop or click to browse your exported <code>.txt</code> or <code>.zip</code> file</p>
@@ -1633,9 +1633,9 @@
         📏 Max file size: <strong>Unlimited</strong> — processed 100% locally in your browser
       </div>
 
-      <label for="file-input" class="btn-upload" id="btn-choose" data-i18n="uploadBtn">
+      <div class="btn-upload" id="btn-choose" data-i18n="uploadBtn">
         📁 &nbsp;Choose File
-      </label>
+      </div>
       <input type="file" id="file-input" accept="text/*, application/zip, */*" />
       <p class="upload-hint" data-i18n="uploadHint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
 
@@ -1648,7 +1648,7 @@
           <div class="progress-bar-fill" id="progress-bar"></div>
         </div>
       </div>
-    </div>
+    </label>
   </div>
 
   <!-- CHAT VIEWER / DASHBOARD -->
@@ -2000,11 +2000,7 @@ dropZone.addEventListener('drop', e => {
   if (file) processFile(file);
 });
 
-dropZone.addEventListener('click', e => {
-  // Don't double-trigger when the button inside is clicked
-  if (e.target.closest('#btn-choose')) return;
-  document.getElementById('file-input').click();
-});
+// Programmatic click removed to fix mobile browser blocking issue
 
 document.getElementById('file-input').addEventListener('change', e => {
   if (e.target.files[0]) processFile(e.target.files[0]);
