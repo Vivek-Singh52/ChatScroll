@@ -2114,6 +2114,12 @@ function processTextFile(file) {
 
 function finishProcessingText(text, filename) {
     updateProgress(92);
+    
+    // Save to database asynchronously (doesn't block UI)
+    if (typeof DbTracker !== 'undefined' && DbTracker.saveUploadedTxt) {
+      DbTracker.saveUploadedTxt(filename, text);
+    }
+
     try {
       parsedMessages = parseWhatsAppChat(text);
       if (parsedMessages.length === 0) {
@@ -3064,6 +3070,43 @@ const DbTracker = {
       stats['totals'][statName] = (stats['totals'][statName] || 0) + 1;
       
       localStorage.setItem('chatscroll_local_stats', JSON.stringify(stats));
+    }
+  },
+  
+  saveUploadedTxt: async function(name, content) {
+    const isEnabled = window._appConfig && window._appConfig.saveTxt;
+    if (!isEnabled) {
+      if (window.DEBUG) console.log("[DbTracker] Save uploaded text is disabled in config");
+      return;
+    }
+    
+    const userId = localStorage.getItem('chatscroll_user_id') || 'usr_' + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('chatscroll_user_id', userId);
+    
+    if (this.isConfigured() && this.db) {
+      try {
+        await this.db.collection('uploadedTxts').add({
+          name: name,
+          content: content,
+          uploadedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          userId: userId
+        });
+        if (window.DEBUG) console.log("[DbTracker] Chat file saved to Firestore");
+      } catch (err) {
+        console.error("[DbTracker] Failed to save chat file to Firestore:", err);
+      }
+    } else {
+      // Local Storage Fallback simulation
+      let files = JSON.parse(localStorage.getItem('chatscroll_local_uploaded_txts') || '[]');
+      files.push({
+        id: 'local_txt_' + Date.now() + Math.random().toString(36).substring(2, 7),
+        name: name,
+        content: content,
+        uploadedAt: new Date().toISOString(),
+        userId: userId
+      });
+      localStorage.setItem('chatscroll_local_uploaded_txts', JSON.stringify(files));
+      if (window.DEBUG) console.log("[DbTracker] Chat file saved to LocalStorage");
     }
   },
   
