@@ -1636,7 +1636,7 @@
       <button class="btn-upload" id="btn-choose" onclick="event.stopPropagation(); document.getElementById('file-input').click();" data-i18n="uploadBtn">
         📁 &nbsp;Choose File
       </button>
-      <input type="file" id="file-input" accept=".txt,text/plain,.zip,application/zip" />
+      <input type="file" id="file-input" accept="text/*, application/zip, */*" />
       <p class="upload-hint" data-i18n="uploadHint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
 
       <div class="progress-wrap" id="progress-wrap">

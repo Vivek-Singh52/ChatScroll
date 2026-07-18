@@ -29,7 +29,14 @@
         </provider>
     </application>
 
-    <!-- Permissions -->
+    <queries>
+        <!-- Allow file browsing -->
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+        </intent>
+    </queries>
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 </manifest>
