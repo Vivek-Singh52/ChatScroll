@@ -343,209 +343,277 @@
     /* Feedbacks Inbox list */
     .inbox-container {
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 300px 1fr;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 20px;
       background: rgba(255, 255, 255, 0.01);
       overflow: hidden;
-      height: 600px;
+      height: 620px;
     }
     .inbox-sidebar {
-      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
       display: flex;
       flex-direction: column;
+      background: rgba(0,0,0,0.12);
     }
     .inbox-header {
-      padding: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      font-weight: 600;
+      padding: 18px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .inbox-header-count {
+      background: rgba(37,211,102,0.15);
+      color: #25d366;
+      border-radius: 20px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0;
     }
     .inbox-list {
       overflow-y: auto;
       flex: 1;
     }
+    .inbox-list::-webkit-scrollbar { width: 4px; }
+    .inbox-list::-webkit-scrollbar-track { background: transparent; }
+    .inbox-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
     .inbox-item {
-      padding: 16px 20px;
+      padding: 14px 16px 14px 20px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background 0.18s;
       position: relative;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
     }
-    .inbox-item:hover {
-      background: rgba(255,255,255,0.03);
-    }
-    .inbox-item.active {
-      background: rgba(37, 211, 102, 0.05);
-    }
-    .inbox-item.unread::before {
-      content: '';
-      position: absolute;
-      left: 8px; top: calc(50% - 4px);
-      width: 8px; height: 8px;
+    .inbox-item:hover { background: rgba(255,255,255,0.03); }
+    .inbox-item.active { background: rgba(37, 211, 102, 0.07); border-right: 2px solid #25d366; }
+    .inbox-item.unread .inbox-item-name { color: #fff; }
+    .inbox-unread-dot {
+      display: none;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: #00bfa5;
+      flex-shrink: 0;
+      margin-top: 6px;
     }
+    .inbox-item.unread .inbox-unread-dot { display: block; }
+    .inbox-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .inbox-item-body { flex: 1; min-width: 0; }
     .inbox-item-top {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
+      align-items: center;
     }
     .inbox-item-name {
       font-weight: 600;
-      font-size: 14px;
-      max-width: 160px;
+      font-size: 13.5px;
+      color: rgba(255,255,255,0.8);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 130px;
     }
     .inbox-item-time {
-      font-size: 11px;
-      color: rgba(255,255,255,0.4);
+      font-size: 10.5px;
+      color: rgba(255,255,255,0.3);
+      flex-shrink: 0;
     }
     .inbox-item-preview {
       font-size: 12px;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.4);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-bottom: 6px;
     }
     .badge-type {
       font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 2px 7px;
+      border-radius: 20px;
       font-weight: 700;
       text-transform: uppercase;
-      margin-top: 6px;
+      letter-spacing: 0.04em;
       display: inline-block;
     }
     .badge-type.feedback { background: rgba(255, 179, 0, 0.15); color: #ffb300; }
-    .badge-type.contact { background: rgba(0, 191, 165, 0.15); color: #00bfa5; }
-    
+    .badge-type.contact  { background: rgba(0, 191, 165, 0.15); color: #00bfa5; }
+    .badge-resolved {
+      font-size: 9px; padding: 2px 7px; border-radius: 20px;
+      font-weight: 700; text-transform: uppercase;
+      background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35);
+      display: inline-block; margin-left: 5px;
+    }
     .inbox-detail {
       display: flex;
       flex-direction: column;
-      background: rgba(255,255,255,0.005);
     }
     .inbox-detail-empty {
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.2);
       font-size: 14px;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
-    
+    .inbox-detail-empty span { font-size: 40px; opacity: 0.3; }
     .detail-body {
-      padding: 32px;
+      padding: 28px 32px;
       overflow-y: auto;
       flex: 1;
     }
+    .detail-body::-webkit-scrollbar { width: 4px; }
+    .detail-body::-webkit-scrollbar-track { background: transparent; }
+    .detail-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
     .detail-header {
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding-bottom: 24px;
-      margin-bottom: 24px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .detail-header-left { display: flex; gap: 14px; align-items: center; }
+    .detail-avatar-lg {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px;
+      color: #fff; flex-shrink: 0;
     }
     .detail-sender-name {
       font-family: 'Outfit', sans-serif;
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 700;
       color: #fff;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .detail-sender-email {
-      font-size: 14px;
-      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+    }
+    .detail-meta-strip {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.45);
+    }
+    .detail-meta-strip strong { color: rgba(255,255,255,0.7); }
+    .detail-meta-divider { color: rgba(255,255,255,0.15); }
+    .detail-stars { display: flex; gap: 3px; margin-bottom: 6px; }
+    .detail-stars span { font-size: 18px; color: #ffb300; }
+    .detail-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 10px;
     }
     .detail-message {
-      font-size: 15px;
-      line-height: 1.6;
-      color: rgba(255,255,255,0.85);
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.04);
-      padding: 24px;
-      border-radius: 16px;
-      margin-bottom: 32px;
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 20px 24px;
+      border-radius: 14px;
       white-space: pre-wrap;
     }
-    
-    /* Stars display */
-    .detail-stars {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 12px;
-    }
-    .detail-stars span {
-      font-size: 20px;
-      color: #ffb300;
-    }
-    
     /* Ticket Reply Section */
     .reply-section {
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 24px 32px;
-      background: rgba(255,255,255,0.01);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 20px 32px;
+      background: rgba(0,0,0,0.1);
+    }
+    .reply-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 10px;
     }
     .reply-textarea {
       width: 100%;
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 12px;
-      padding: 16px;
+      padding: 14px 16px;
       color: #fff;
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13.5px;
+      line-height: 1.6;
       outline: none;
       resize: none;
-      transition: all 0.3s;
-      margin-bottom: 16px;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 12px;
+      box-sizing: border-box;
     }
     .reply-textarea:focus {
-      border-color: #00bfa5;
-      background: rgba(255,255,255,0.06);
+      border-color: rgba(0, 191, 165, 0.5);
+      background: rgba(255,255,255,0.055);
     }
     .reply-actions {
       display: flex;
-      gap: 16px;
+      gap: 10px;
       justify-content: flex-end;
+      align-items: center;
     }
     .btn-reply-send {
-      background: #25d366;
-      color: #0a0a12;
+      background: linear-gradient(135deg, #25d366, #128c7e);
+      color: #fff;
       font-family: 'Outfit', sans-serif;
-      font-weight: 600;
-      font-size: 14px;
+      font-weight: 700;
+      font-size: 13.5px;
       border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
+      border-radius: 10px;
+      padding: 10px 22px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
+      gap: 7px;
+      transition: opacity 0.2s, transform 0.15s;
     }
-    .btn-reply-send:hover {
-      background: #128c7e;
-      color: #fff;
-    }
+    .btn-reply-send:hover { opacity: 0.85; transform: translateY(-1px); }
     .btn-resolve {
       background: none;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      padding: 10px 20px;
-      color: rgba(255,255,255,0.7);
-      font-size: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 10px 18px;
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
+      font-family: 'Outfit', sans-serif;
     }
     .btn-resolve:hover {
-      border-color: #00bfa5;
+      border-color: rgba(0, 191, 165, 0.4);
       color: #00bfa5;
-      background: rgba(0, 191, 165, 0.05);
+      background: rgba(0, 191, 165, 0.04);
     }
     
     /* Config Panel */
@@ -730,7 +798,10 @@
       <div class="inbox-container">
         <!-- Sidebar Item List -->
         <div class="inbox-sidebar">
-          <div class="inbox-header">Messages</div>
+          <div class="inbox-header">
+            <span>Inbox</span>
+            <span class="inbox-header-count" id="inbox-sidebar-count">0</span>
+          </div>
           <div class="inbox-list" id="inbox-items-container">
             <!-- Dynamic Items -->
           </div>
@@ -739,31 +810,38 @@
         <div class="inbox-detail" id="inbox-detail-panel">
           <div class="inbox-detail-empty" id="inbox-empty-view">
             <span>✉</span>
-            <p>Select a message from the list to view details and reply</p>
+            <p>Select a message from the list to view it</p>
           </div>
           <div class="detail-content" id="inbox-full-view" style="display:none; height:100%; flex-direction:column;">
             <div class="detail-body">
               <div class="detail-header">
-                <div>
-                  <h3 class="detail-sender-name" id="det-name">User Name</h3>
-                  <div class="detail-sender-email" id="det-email">user@example.com</div>
-                  <span class="badge-type" id="det-badge">FEEDBACK</span>
+                <div class="detail-header-left">
+                  <div class="detail-avatar-lg" id="det-avatar-lg"></div>
+                  <div>
+                    <h3 class="detail-sender-name" id="det-name">User Name</h3>
+                    <div class="detail-sender-email" id="det-email">user@example.com</div>
+                  </div>
                 </div>
-                <div class="inbox-item-time" id="det-time">July 18, 12:45 PM</div>
+                <span class="badge-type" id="det-badge">FEEDBACK</span>
+              </div>
+              <div class="detail-meta-strip">
+                <span>🕐</span>
+                <span id="det-time">—</span>
+                <span class="detail-meta-divider">•</span>
+                <span>📧 <strong id="det-email-meta">—</strong></span>
               </div>
               <div class="detail-stars" id="det-stars-container" style="display:none;">
                 <!-- dynamic stars -->
               </div>
-              <div class="detail-message" id="det-message">
-                User message contents go here...
-              </div>
+              <div class="detail-label">Message</div>
+              <div class="detail-message" id="det-message">User message contents go here...</div>
             </div>
-            
             <div class="reply-section">
-              <textarea class="reply-textarea" id="reply-text" rows="3" placeholder="Draft your reply mail here..."></textarea>
+              <div class="reply-label">✏️ Draft Reply</div>
+              <textarea class="reply-textarea" id="reply-text" rows="4" placeholder="Write your reply here…"></textarea>
               <div class="reply-actions">
-                <button class="btn-resolve" onclick="markTicketStatus('resolved')">Resolve Ticket</button>
-                <button class="btn-reply-send" onclick="sendReplyEmail()">✉ Send Email Reply</button>
+                <button class="btn-resolve" onclick="markTicketStatus('resolved')">✓ Mark Resolved</button>
+                <button class="btn-reply-send" onclick="sendReplyEmail()">✉ Send Reply</button>
               </div>
             </div>
           </div>
@@ -1084,21 +1162,41 @@
       return;
     }
     
+    // Update sidebar count pill
+    const sidebarCount = document.getElementById('inbox-sidebar-count');
+    if (sidebarCount) sidebarCount.innerText = feedbacksList.length;
+
     feedbacksList.forEach(ticket => {
       const item = document.createElement('div');
       item.className = `inbox-item ${ticket.status === 'pending' ? 'unread' : ''} ${selectedTicketId === ticket.id ? 'active' : ''}`;
       item.onclick = () => selectTicket(ticket.id);
       
       const date = new Date(ticket.timestamp);
-      const timeStr = date.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' ' + date.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+      const now = new Date();
+      const isToday = date.toDateString() === now.toDateString();
+      const timeStr = isToday
+        ? date.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'})
+        : date.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+
+      // Avatar color based on name
+      const colors = ['#25d366','#00bfa5','#7c3aed','#db2777','#ea580c','#0284c7'];
+      const colorIdx = (ticket.name || 'U').charCodeAt(0) % colors.length;
+      const initials = (ticket.name || 'U').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
       
       item.innerHTML = `
-        <div class="inbox-item-top">
-          <span class="inbox-item-name">${ticket.name}</span>
-          <span class="inbox-item-time">${timeStr}</span>
+        <div class="inbox-unread-dot"></div>
+        <div class="inbox-avatar" style="background:${colors[colorIdx]}22; border:1.5px solid ${colors[colorIdx]}55; color:${colors[colorIdx]}">${initials}</div>
+        <div class="inbox-item-body">
+          <div class="inbox-item-top">
+            <span class="inbox-item-name">${ticket.name}</span>
+            <span class="inbox-item-time">${timeStr}</span>
+          </div>
+          <div class="inbox-item-preview">${ticket.message}</div>
+          <div style="margin-top:5px">
+            <span class="badge-type ${ticket.type}">${ticket.type}</span>
+            ${ticket.status === 'resolved' ? '<span class="badge-resolved">resolved</span>' : ''}
+          </div>
         </div>
-        <div class="inbox-item-preview">${ticket.message}</div>
-        <span class="badge-type ${ticket.type}">${ticket.type}</span>
       `;
       listContainer.appendChild(item);
     });
@@ -1117,9 +1215,23 @@
     document.getElementById('det-name').innerText = ticket.name;
     document.getElementById('det-email').innerText = ticket.email;
     document.getElementById('det-message').innerText = ticket.message;
-    
+
+    // Avatar in detail panel
+    const colors = ['#25d366','#00bfa5','#7c3aed','#db2777','#ea580c','#0284c7'];
+    const colorIdx = (ticket.name || 'U').charCodeAt(0) % colors.length;
+    const initials = (ticket.name || 'U').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const avatarEl = document.getElementById('det-avatar-lg');
+    if (avatarEl) {
+      avatarEl.style.background = colors[colorIdx] + '22';
+      avatarEl.style.border = `2px solid ${colors[colorIdx]}55`;
+      avatarEl.style.color = colors[colorIdx];
+      avatarEl.innerText = initials;
+    }
+
     const date = new Date(ticket.timestamp);
     document.getElementById('det-time').innerText = date.toLocaleString();
+    const metaEmail = document.getElementById('det-email-meta');
+    if (metaEmail) metaEmail.innerText = ticket.email;
     
     const badge = document.getElementById('det-badge');
     badge.innerText = ticket.type;
@@ -1140,7 +1252,7 @@
     
     // Prefill reply draft
     const replyArea = document.getElementById('reply-text');
-    replyArea.value = `Hi ${ticket.name},\n\nThank you for reaching out to ChatScroll support! We've received your message:\n"${ticket.message.substring(0, 80)}..."\n\n[Your reply here]\n\nBest regards,\nVivek Singh (ChatScroll Creator)`;
+    replyArea.value = `Hi ${ticket.name},\n\nThank you for reaching out to ChatScroll! We've received your message.\n\n[Your reply here]\n\nBest regards,\nVivek Singh\nChatScroll`;
   }
 
   async function markTicketStatus(newStatus) {
