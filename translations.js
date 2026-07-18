@@ -122,7 +122,16 @@ const translations = {
     sbDays: "दिन",
     sbDateRange: "दिनांक सीमा",
     sbMostActive: "सबसे सक्रिय",
-    sbTopParticipants: "शीर्ष भागीदार"
+    sbTopParticipants: "शीर्ष भागीदार",
+    insightsTitle: "चैट का विश्लेषण सेकंडों में करें",
+    insightsDesc: "त्वरित अंतर्दृष्टि: जानें कि कौन सबसे अधिक संदेश भेज रहा है, पीक गतिविधि समय देखें, और अपने बातचीत इतिहास में छिपे हुए पैटर्न को उजागर करें।",
+    totalWords: "कुल शब्द:",
+    longestMsg: "सबसे लंबा संदेश:",
+    wordstock: "अनोखे शब्द:",
+    avgWords: "प्रति संदेश औसत शब्द:",
+    mostEmojis: "सबसे ज्यादा इस्तेमाल किए गए इमोजी:",
+    wordsUnit: "शब्द",
+    msgsUnit: "संदेश"
   },
   es: {
     headerBadge: "✦ Gratis y Privado",
@@ -180,7 +189,16 @@ const translations = {
     sbDays: "Días",
     sbDateRange: "Rango de fechas",
     sbMostActive: "Más activo",
-    sbTopParticipants: "PARTICIPANTES PRINCIPALES"
+    sbTopParticipants: "PARTICIPANTES PRINCIPALES",
+    insightsTitle: "Analiza tu chat de WhatsApp en segundos",
+    insightsDesc: "Información instantánea: descubre quién envía más mensajes, mira las horas de máxima actividad y descubre patrones ocultos en el historial de conversación.",
+    totalWords: "Total de palabras:",
+    longestMsg: "Mensaje más largo:",
+    wordstock: "Vocabulario único:",
+    avgWords: "Promedio de palabras por mensaje:",
+    mostEmojis: "Emojis más usados:",
+    wordsUnit: "palabras",
+    msgsUnit: "mensajes"
   },
   fr: {
     headerBadge: "✦ Gratuit et Privé",
@@ -238,7 +256,16 @@ const translations = {
     sbDays: "Jours",
     sbDateRange: "Plage de dates",
     sbMostActive: "Plus actif",
-    sbTopParticipants: "PARTICIPANTS PRINCIPAUX"
+    sbTopParticipants: "PARTICIPANTS PRINCIPAUX",
+    insightsTitle: "Analysez votre chat WhatsApp en quelques secondes",
+    insightsDesc: "Perspectives instantanées: découvrez qui envoie le plus de messages, visualisez les heures d'activité maximale et découvrez des modèles cachés dans l'historique.",
+    totalWords: "Total des mots:",
+    longestMsg: "Message le plus long:",
+    wordstock: "Mots uniques:",
+    avgWords: "Mots moyens par message:",
+    mostEmojis: "Émojis les plus utilisés:",
+    wordsUnit: "mots",
+    msgsUnit: "messages"
   },
   ar: {
     headerBadge: "✦ مجاني وخاص",
@@ -296,7 +323,16 @@ const translations = {
     sbDays: "الأيام",
     sbDateRange: "نطاق التاريخ",
     sbMostActive: "الأكثر نشاطاً",
-    sbTopParticipants: "المشاركون الرئيسيون"
+    sbTopParticipants: "المشاركون الرئيسيون",
+    insightsTitle: "حلل دردشة واتساب في ثوانٍ",
+    insightsDesc: "رؤى فورية: اكتشف من يرسل أكبر عدد من الرسائل، وتعرف على أوقات النشاط الذروة، واكشف الأنماط المخفية في سجل محادثاتك.",
+    totalWords: "إجمالي الكلمات:",
+    longestMsg: "أطول رسالة:",
+    wordstock: "الكلمات الفريدة:",
+    avgWords: "معدل الكلمات لكل رسالة:",
+    mostEmojis: "الرموز التعبيرية الأكثر استخداماً:",
+    wordsUnit: "كلمة",
+    msgsUnit: "رسالة"
   },
   pt: {
     headerBadge: "✦ Grátis e Privado",
@@ -354,7 +390,16 @@ const translations = {
     sbDays: "Dias",
     sbDateRange: "Intervalo de datas",
     sbMostActive: "Mais ativo",
-    sbTopParticipants: "PRINCIPAIS PARTICIPANTES"
+    sbTopParticipants: "PRINCIPAIS PARTICIPANTES",
+    insightsTitle: "Analise seu chat do WhatsApp em segundos",
+    insightsDesc: "Insights instantâneos: descubra quem envia mais mensagens, veja os horários de pico de atividade e descubra padrões ocultos no histórico de conversas.",
+    totalWords: "Total de palavras:",
+    longestMsg: "Mensagem mais longa:",
+    wordstock: "Vocabulário único:",
+    avgWords: "Média de palavras por mensagem:",
+    mostEmojis: "Emojis mais usados:",
+    wordsUnit: "palavras",
+    msgsUnit: "mensagens"
   },
   zh: {
     headerBadge: "✦ 免费 & 隐私",
@@ -412,6 +457,15 @@ const translations = {
     sbDays: "天数",
     sbDateRange: "日期范围",
     sbMostActive: "最活跃用户",
-    sbTopParticipants: "前五名成员"
+    sbTopParticipants: "前五名成员",
+    insightsTitle: "在几秒钟内分析您的 WhatsApp 聊天",
+    insightsDesc: "即时洞察：发现谁发送了最多的消息，查看活动高峰时间，并揭示对话历史中的隐藏模式。",
+    totalWords: "总字数:",
+    longestMsg: "最长消息:",
+    wordstock: "独立词汇数:",
+    avgWords: "平均每条消息字数:",
+    mostEmojis: "最常用表情:",
+    wordsUnit: "字",
+    msgsUnit: "条消息"
   }
 };
