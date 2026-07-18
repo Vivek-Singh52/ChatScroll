@@ -2053,10 +2053,14 @@ function renderChat() {
 
   document.getElementById('msg-count').textContent     = `${realMsgs.length} messages loaded`;
   document.getElementById('chat-title').textContent    = chatName;
-  document.getElementById('wa-chat-name').textContent  = chatName;
-  document.getElementById('wa-chat-sub').textContent   = isGroupChat
-    ? senders.slice(0,3).join(', ') + (senders.length > 3 ? ` +${senders.length-3} more` : '')
-    : 'tap here for contact info';
+  const waChatName = document.getElementById('wa-chat-name');
+  if (waChatName) waChatName.textContent = chatName;
+  const waChatSub = document.getElementById('wa-chat-sub');
+  if (waChatSub) {
+    waChatSub.textContent = isGroupChat
+      ? senders.slice(0,3).join(', ') + (senders.length > 3 ? ` +${senders.length-3} more` : '')
+      : 'tap here for contact info';
+  }
 
   let lastDate = null;
   let idx      = 0;
