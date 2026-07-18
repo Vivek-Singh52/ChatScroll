@@ -367,6 +367,87 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
+    /* ─── INSIGHTS ─── */
+    .insights-section {
+      max-width: 1000px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+      display: none;
+      animation: fadeInUp 0.8s ease both;
+    }
+    .insights-section.visible {
+      display: block;
+    }
+    .insights-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .insights-header h2 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      margin-bottom: 16px;
+      font-weight: 800;
+    }
+    .insights-header p {
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    .insights-charts {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+    .chart-card canvas {
+      width: 100% !important;
+      max-height: 300px;
+    }
+    .insights-users {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .user-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      box-shadow: var(--shadow-card);
+      text-align: left;
+    }
+    .user-card h3 {
+      font-size: 24px;
+      margin-bottom: 24px;
+      text-align: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .user-stat {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+    .user-stat strong {
+      color: var(--text-primary);
+    }
+    .user-stat .icon {
+      font-size: 18px;
+    }
+    @media (max-width: 768px) {
+      .insights-charts, .insights-users { grid-template-columns: 1fr; }
+    }
+
     /* ─── UPLOAD CARD ─── */
     .upload-section {
       max-width: 680px;
@@ -1107,7 +1188,8 @@
       height: auto !important;
       overflow: visible !important;
     }
-  </style>
+  <!-- Chart.js for Insights -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -1239,6 +1321,27 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="insights-section" id="chat-insights">
+    <div class="insights-header">
+      <h2 data-i18n="insightsTitle">Analyze your WhatsApp Chat in Seconds</h2>
+      <p data-i18n="insightsDesc">Instant Insights: Discover who's texting the most messages, see peak activity times, and uncover hidden patterns in your conversation history.</p>
+    </div>
+    
+    <div class="insights-charts">
+      <div class="chart-card">
+        <canvas id="activityChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <canvas id="distributionChart"></canvas>
+      </div>
+    </div>
+
+    <div class="insights-users" id="insights-users-container">
+      <!-- User cards will be dynamically injected here -->
     </div>
   </section>
 
@@ -1820,6 +1923,7 @@ function renderChat() {
       document.getElementById('upload-section').style.display = 'none';
       document.getElementById('chat-section').classList.add('visible');
       document.getElementById('progress-wrap').classList.remove('visible');
+      generateInsights();
       showToast(`Loaded ${realMsgs.length} messages!`, 'success');
     }
   }
@@ -2040,6 +2144,122 @@ document.addEventListener('mousemove', (e) => {
 document.addEventListener('mouseleave', () => {
   if (glowCursor) glowCursor.style.opacity = '0';
 });
+/* ═══════════════════════════ INSIGHTS ═══════════════════════════════ */
+function generateInsights() {
+  const realMsgs = parsedMessages.filter(m => !m.isSystem && m.sender && m.text);
+  if (realMsgs.length === 0) return;
+
+  document.getElementById('chat-insights').classList.add('visible');
+
+  const hourlyCounts = new Array(24).fill(0);
+  const senderCounts = {};
+
+  const emojiRegex = /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/gu;
+
+  realMsgs.forEach(m => {
+    let hour = 0;
+    const tMatch = m.time.match(/(\d+):(\d+)(?:\s?(am|pm))?/i);
+    if (tMatch) {
+      hour = parseInt(tMatch[1], 10);
+      const ampm = tMatch[3] ? tMatch[3].toLowerCase() : null;
+      if (ampm === 'pm' && hour < 12) hour += 12;
+      if (ampm === 'am' && hour === 12) hour = 0;
+    }
+    hourlyCounts[hour]++;
+
+    if (!senderCounts[m.sender]) {
+      senderCounts[m.sender] = { count: 0, words: 0, longest: 0, uniqueWords: new Set(), emojis: {} };
+    }
+    const stat = senderCounts[m.sender];
+    stat.count++;
+
+    const text = m.text.toLowerCase();
+    const words = text.match(/\b[\w']+\b/g) || [];
+    stat.words += words.length;
+    if (words.length > stat.longest) stat.longest = words.length;
+    words.forEach(w => stat.uniqueWords.add(w));
+
+    const emojis = m.text.match(emojiRegex) || [];
+    emojis.forEach(e => {
+      stat.emojis[e] = (stat.emojis[e] || 0) + 1;
+    });
+  });
+
+  const chartColors = ['#25D366', '#128C7E', '#075E54', '#34B7F1', '#ECE5DD', '#DCF8C6'];
+  const textColor = '#8b9bb4';
+
+  if (window.activityChartInstance) window.activityChartInstance.destroy();
+  if (window.distChartInstance) window.distChartInstance.destroy();
+
+  const ctxActivity = document.getElementById('activityChart').getContext('2d');
+  window.activityChartInstance = new Chart(ctxActivity, {
+    type: 'bar',
+    data: {
+      labels: ['12 AM','1 AM','2 AM','3 AM','4 AM','5 AM','6 AM','7 AM','8 AM','9 AM','10 AM','11 AM','12 PM','1 PM','2 PM','3 PM','4 PM','5 PM','6 PM','7 PM','8 PM','9 PM','10 PM','11 PM'],
+      datasets: [{
+        label: t('msgsUnit') || 'Messages',
+        data: hourlyCounts,
+        backgroundColor: 'rgba(37, 211, 102, 0.6)',
+        borderColor: '#25D366',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(139,155,180,0.1)' }, ticks: { color: textColor } },
+        x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, minRotation: 45 } }
+      }
+    }
+  });
+
+  const senders = Object.keys(senderCounts).sort((a,b) => senderCounts[b].count - senderCounts[a].count);
+  const topSenders = senders.slice(0, 10);
+  
+  const ctxDist = document.getElementById('distributionChart').getContext('2d');
+  window.distChartInstance = new Chart(ctxDist, {
+    type: 'doughnut',
+    data: {
+      labels: topSenders,
+      datasets: [{
+        data: topSenders.map(s => senderCounts[s].count),
+        backgroundColor: chartColors.slice(0, topSenders.length),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: textColor } }
+      }
+    }
+  });
+
+  const usersContainer = document.getElementById('insights-users-container');
+  usersContainer.innerHTML = '';
+  
+  topSenders.slice(0, 2).forEach((s, idx) => {
+    const stat = senderCounts[s];
+    const topEmojis = Object.keys(stat.emojis).sort((a,b) => stat.emojis[b] - stat.emojis[a]).slice(0, 3).join(' ');
+    const avgWords = stat.count > 0 ? (stat.words / stat.count).toFixed(1) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.innerHTML = `
+      <h3 style="color: ${chartColors[idx]}">${s}</h3>
+      <div class="user-stat"><span class="icon">📘</span> <span><span data-i18n="totalWords">${t('totalWords')}</span> <strong>${stat.words}</strong></span></div>
+      <div class="user-stat"><span class="icon">😀</span> <span><span data-i18n="mostEmojis">${t('mostEmojis')}</span> <strong>${topEmojis || 'None'}</strong></span></div>
+      <div class="user-stat"><span class="icon">📏</span> <span><span data-i18n="longestMsg">${t('longestMsg')}</span> <strong>${stat.longest} <span data-i18n="wordsUnit">${t('wordsUnit')}</span></strong></span></div>
+      <div class="user-stat"><span class="icon">⭐</span> <span><span data-i18n="wordstock">${t('wordstock')}</span> <strong>${stat.uniqueWords.size}</strong></span></div>
+      <div class="user-stat"><span class="icon">📊</span> <span><span data-i18n="avgWords">${t('avgWords')}</span> <strong>${avgWords}</strong></span></div>
+    `;
+    usersContainer.appendChild(card);
+  });
+}
 </script>
 </body>
 </html>

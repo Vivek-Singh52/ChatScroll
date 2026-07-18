@@ -46,7 +46,16 @@ const translations = {
     toastParseError: "Could not parse this file. Make sure it's a valid WhatsApp export.",
     toastZipError: "Could not process the zip file.",
     toastNoTxt: "No .txt file found inside the zip.",
-    toastNoMsgs: "No messages found"
+    toastNoMsgs: "No messages found",
+    insightsTitle: "Analyze your WhatsApp Chat in Seconds",
+    insightsDesc: "Instant Insights: Discover who's texting the most messages, see peak activity times, and uncover hidden patterns in your conversation history.",
+    totalWords: "Total words:",
+    longestMsg: "Longest message:",
+    wordstock: "Wordstock (unique words used):",
+    avgWords: "Average words per message:",
+    mostEmojis: "Most used emojis:",
+    wordsUnit: "words",
+    msgsUnit: "msgs"
   },
   hi: {
     headerBadge: "✦ मुफ़्त और सुरक्षित",
