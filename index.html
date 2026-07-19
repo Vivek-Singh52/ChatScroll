@@ -1622,8 +1622,47 @@
     </div>
   </section>
 
+  <!-- TOP CONTENT WRAPPER -->
+  <div class="top-content-wrapper" style="display: flex; flex-wrap: wrap; gap: 40px; max-width: 1200px; margin: 0 auto 60px auto; padding: 0 20px; align-items: stretch; justify-content: center;">
+    
+    <!-- LEFT: UPLOAD -->
+    <div style="flex: 1 1 450px; display: flex; flex-direction: column;">
+  <!-- UPLOAD -->
+  <div class="upload-section" id="upload-section" style="margin: 0; flex: 1; display: flex;">
+    <label for="file-input" class="upload-card" id="drop-zone" style="display: flex; flex-direction: column; justify-content: center; margin: 0; max-width: 100%; height: 100%; box-sizing: border-box;">
+      <span class="upload-icon">📂</span>
+      <h2 data-i18n="uploadTitle">Drop your WhatsApp chat file here</h2>
+      <p data-i18n="uploadDesc">Drag &amp; drop or click to browse your exported <code>.txt</code> or <code>.zip</code> file</p>
+
+      <div class="upload-limit-badge" data-i18n="uploadLimit">
+        📏 Max file size: <strong>Unlimited</strong> — processed 100% locally in your browser
+      </div>
+
+      <div class="btn-upload" id="btn-choose" data-i18n="uploadBtn">
+        📁 &nbsp;Choose File
+      </div>
+      <input type="file" id="file-input" accept="text/*, application/zip, */*" />
+      <p class="upload-hint" data-i18n="uploadHint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
+      
+      
+
+      <div class="progress-wrap" id="progress-wrap">
+        <div class="progress-label">
+          <span id="progress-filename">Loading…</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+      </div>
+    </label>
+  </div>
+    </div>
+
+    <!-- RIGHT: HOW TO EXPORT -->
+    <div style="flex: 1 1 450px; display: flex; flex-direction: column;">
   <!-- HOW TO EXPORT -->
-  <section class="how-to" id="how-to-export-section">
+  <section class="how-to" id="how-to-export-section" style="margin: 0; max-width: 100%; height: 100%;">
     <h2 class="section-title" data-i18n="howTitle">How to Export Your WhatsApp Chat</h2>
     <div class="steps">
       <div class="step">
@@ -1656,37 +1695,7 @@
       </div>
     </div>
   </section>
-
-  
-  <!-- UPLOAD -->
-  <div class="upload-section" id="upload-section">
-    <label for="file-input" class="upload-card" id="drop-zone" style="display: block;">
-      <span class="upload-icon">📂</span>
-      <h2 data-i18n="uploadTitle">Drop your WhatsApp chat file here</h2>
-      <p data-i18n="uploadDesc">Drag &amp; drop or click to browse your exported <code>.txt</code> or <code>.zip</code> file</p>
-
-      <div class="upload-limit-badge" data-i18n="uploadLimit">
-        📏 Max file size: <strong>Unlimited</strong> — processed 100% locally in your browser
-      </div>
-
-      <div class="btn-upload" id="btn-choose" data-i18n="uploadBtn">
-        📁 &nbsp;Choose File
-      </div>
-      <input type="file" id="file-input" accept="text/*, application/zip, */*" />
-      <p class="upload-hint" data-i18n="uploadHint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
-      
-      
-
-      <div class="progress-wrap" id="progress-wrap">
-        <div class="progress-label">
-          <span id="progress-filename">Loading…</span>
-          <span id="progress-pct">0%</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="progress-bar"></div>
-        </div>
-      </div>
-    </label>
+    </div>
   </div>
 
   <!-- CHAT VIEWER / DASHBOARD -->
