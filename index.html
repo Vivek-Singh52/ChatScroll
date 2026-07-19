@@ -1566,6 +1566,8 @@
   </style>
   <!-- Chart.js for Insights -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
@@ -1907,6 +1909,41 @@
 </div>
 
 <script>
+// --- SERVICE WORKER & WEB SHARE TARGET ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW registration failed:', err));
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.location.search.includes('shared_loaded=true')) {
+    try {
+      const cache = await caches.open('chatscroll-shared-files');
+      const response = await cache.match('/shared-file');
+      if (response) {
+        const blob = await response.blob();
+        const contentType = response.headers.get('Content-Type') || 'text/plain';
+        const fileName = response.headers.get('X-File-Name') || 'shared_chat';
+        const file = new File([blob], fileName, { type: contentType });
+        
+        // Let UI update first, then process
+        setTimeout(() => {
+          if (typeof processFile === 'function') {
+            processFile(file);
+          }
+        }, 100);
+        
+        // Cleanup cache and URL
+        await cache.delete('/shared-file');
+        window.history.replaceState({}, document.title, '/');
+      }
+    } catch (e) {
+      console.error('Error loading shared file:', e);
+    }
+  }
+});
+
 // --- THEME TOGGLE ---
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 function setTheme(isLight) {

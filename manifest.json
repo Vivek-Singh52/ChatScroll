@@ -1,0 +1,37 @@
+{
+  "name": "ChatScroll",
+  "short_name": "ChatScroll",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07070d",
+  "theme_color": "#0a0a12",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/?shared=true",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "chatfile",
+          "accept": [
+            "text/plain",
+            "application/zip",
+            ".txt",
+            ".zip"
+          ]
+        }
+      ]
+    }
+  }
+}
