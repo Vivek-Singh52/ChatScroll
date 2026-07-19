@@ -1638,6 +1638,12 @@
       </div>
       <input type="file" id="file-input" accept="text/*, application/zip, */*" />
       <p class="upload-hint" data-i18n="uploadHint">Supports WhatsApp export formats (.txt or .zip with media) · Any locale</p>
+      
+      <div style="margin-top: 16px;">
+        <a href="#how-to-export-section" style="color: var(--accent-green); text-decoration: none; font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(37,211,102,0.1); border-radius: 8px; transition: background 0.2s;">
+          <span style="font-size: 16px;">❓</span> <span data-i18n="howToExportLink">Don't know how to export? Click here</span>
+        </a>
+      </div>
 
       <div class="progress-wrap" id="progress-wrap">
         <div class="progress-label">
@@ -1787,7 +1793,7 @@
   </section>
 
   <!-- HOW TO EXPORT -->
-  <section class="how-to">
+  <section class="how-to" id="how-to-export-section">
     <h2 class="section-title" data-i18n="howTitle">How to Export Your WhatsApp Chat</h2>
     <div class="steps">
       <div class="step">
