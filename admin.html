@@ -1653,7 +1653,7 @@
     
     // Open system email program prefilled
     const mailtoUrl = `mailto:${ticket.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyBody)}`;
-    window.open(mailtoUrl, '_blank');
+    window.location.href = mailtoUrl;
     
     // Auto resolve the ticket
     markTicketStatus('resolved');
