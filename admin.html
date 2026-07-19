@@ -1651,9 +1651,9 @@
     const replyBody = document.getElementById('reply-text').value;
     const subject = `Re: ChatScroll ${ticket.type === 'feedback' ? 'Feedback' : 'Query'} from ${ticket.name}`;
     
-    // Open system email program prefilled
-    const mailtoUrl = `mailto:${ticket.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyBody)}`;
-    window.location.href = mailtoUrl;
+    // Since local mailto: can be broken on Windows, we use a direct Gmail Compose link
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(ticket.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(replyBody)}`;
+    window.open(gmailUrl, '_blank');
     
     // Auto resolve the ticket
     markTicketStatus('resolved');
